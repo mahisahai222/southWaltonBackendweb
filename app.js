@@ -7,6 +7,7 @@ const roleRoute = require('./routes/roleRoute')
 const authRoute = require('./routes/authRoute')
 const userRoute = require('./routes/userRoute')
 const signRoutes = require('./routes/signRoute');
+const vehicleRoutes = require('./routes/vehicleRoute');
 
 
 
@@ -39,6 +40,8 @@ app.use('/api/auth', authRoute)
 app.use('/api/user', userRoute)
 
 app.use('/api/sign', signRoutes);
+
+app.use('/api/vehicle', vehicleRoutes);
 
 //Response handler Middleware
 
