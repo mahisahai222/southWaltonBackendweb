@@ -1,6 +1,7 @@
 // require('dotenv').config();
 require('dotenv').config()
 const express = require('express') 
+const path = require('path');
 const mongoose = require('mongoose')
 // const companyLoginRoutes = require('./routes/companyLoginRoutes')
 const roleRoute = require('./routes/roleRoute')
@@ -8,6 +9,8 @@ const authRoute = require('./routes/authRoute')
 const userRoute = require('./routes/userRoute')
 const signRoutes = require('./routes/signRoute');
 const vehicleRoutes = require('./routes/vehicleRoute');
+const contactRoutes = require('./routes/contactUsRoute');
+const checkoutRoutes= require('./routes/checkoutRoute')
 
 //
 
@@ -42,6 +45,15 @@ app.use('/api/user', userRoute)
 app.use('/api/sign', signRoutes);
 
 app.use('/api/vehicle', vehicleRoutes);
+
+// to create bookingForm
+
+app.use('/api/book',checkoutRoutes)
+
+// to create contactForm
+app.use('/api/create',contactRoutes)
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 //Response handler Middleware
 
