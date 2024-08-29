@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {getVehicles, changeStatus, removecart} = require('../controllers/vehicleController');
+const {getVehicles, changeStatus, removecart, getVehicleById} = require('../controllers/vehicleController');
 // const multer = require('multer');
 // const path = require('path');
 
@@ -17,6 +17,7 @@ const {getVehicles, changeStatus, removecart} = require('../controllers/vehicleC
 
 // Routes
 router.get('/',getVehicles);
+router.get('/vehicles/:id', getVehicleById);
 router.put('/changestatus/:id', changeStatus);
 router.put('/removecart/:id', removecart);
 // router.post('/', upload.single('image'), vehicleController.createVehicle);
