@@ -11,6 +11,7 @@ const signRoutes = require('./routes/signRoute');
 const vehicleRoutes = require('./routes/vehicleRoute');
 const contactRoutes = require('./routes/contactUsRoute');
 const checkoutRoutes= require('./routes/checkoutRoute')
+const payment = require('./routes/paymentRoute');
 
 
 
@@ -52,6 +53,10 @@ app.use('/api/book',checkoutRoutes)
 
 // to create contactForm
 app.use('/api/create',contactRoutes)
+
+//payment creation
+
+app.use('/api/payment',payment);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
