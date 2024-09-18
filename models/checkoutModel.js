@@ -47,19 +47,19 @@ const BookformSchema = new mongoose.Schema({
     
     bname: {
         type: String,
-        required: true,
+        required: false,
     },
     bphone: {
         type: Number,
-        required: true,
+        required: false,
     },
     bemail: {
         type: String,
-        required: true,
+        required: false,
     },
     bsize: {
         type: Number,
-        required: true,
+        required: false,
     },
     baddress: {
         type: String,
@@ -68,6 +68,10 @@ const BookformSchema = new mongoose.Schema({
     baddressh: {
         type: String,
         required: false,
+    },
+    paymentId:{
+        type: String,
+        default:false
     },
     drivers: [DriverSchema]
 });
