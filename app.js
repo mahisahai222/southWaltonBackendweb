@@ -59,7 +59,7 @@ app.use('/api/create',contactRoutes)
 //payment creation
 
 app.use('/api/payment',payment);
-app.use('',pay);
+app.use('/api/pay',pay);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

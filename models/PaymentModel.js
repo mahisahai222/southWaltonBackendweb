@@ -1,7 +1,7 @@
 const mongoose = require ('mongoose');
 const paymentSchema=mongoose.Schema(
     {
-        bookingId:{
+        userId:{
             type:String,
             require:false
         },
@@ -15,6 +15,10 @@ const paymentSchema=mongoose.Schema(
         },
         email:{
             type:String,
+            require:false
+        },
+        amount:{
+            type :String,
             require:false
         }
         
