@@ -11,9 +11,36 @@ const otpGenerator = require('otp-generator');
 
 //to signup
 
-const signUp = async (req, res, next) => {
+// const signUp = async (req, res, next) => {
 
+
+//   try {
+//     const newUser = new User({
+//       fullName: req.body.fullName,
+//       email: req.body.email,
+//       password: req.body.password,
+//       phoneNumber: req.body.phoneNumber,
+//       confirmPassword: req.body.confirmPassword,
+//       state: req.body.state,
+//     });
+//     await newUser.save();
+//     return next(createSuccess(200, "User Registered Successfully"));
+//   }
+//    catch (error) {
+//     return next(createError(500, "Something went wrong"));
+//   }
+// };
+const signUp = async (req, res, next) => {
   try {
+    // Check if email already exists in the database
+    const existingUser = await User.findOne({ email: req.body.email });
+    
+    if (existingUser) {
+      // If the email is already registered, return an error
+      return next(createError(400, "Email is already registered"));
+    }
+
+    // If email is not taken, create a new user
     const newUser = new User({
       fullName: req.body.fullName,
       email: req.body.email,
@@ -22,13 +49,18 @@ const signUp = async (req, res, next) => {
       confirmPassword: req.body.confirmPassword,
       state: req.body.state,
     });
+
+    // Save the new user to the database
     await newUser.save();
+
+    // Return success message
     return next(createSuccess(200, "User Registered Successfully"));
-  }
-   catch (error) {
+  } catch (error) {
+    // Handle errors, such as database or server issues
     return next(createError(500, "Something went wrong"));
   }
 };
+
 
 const login = async (req, res, next) => {
   try {
