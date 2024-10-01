@@ -9,7 +9,7 @@ const userTokenSchema = mongoose.Schema(
         },
         token: {
             type: String,
-            required: true
+            required: false
         },
         createdAt:{
             type: Date,
