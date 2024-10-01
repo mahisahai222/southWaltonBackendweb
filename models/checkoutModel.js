@@ -36,6 +36,10 @@ const BookformSchema = new mongoose.Schema({
         type:String,
         required:false,
     },
+    vehiclesId:{
+        type:String,
+        require:false
+    },
     bpickDate:{
         type:Date,
         required:false,
