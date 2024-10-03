@@ -152,8 +152,8 @@ const sendEmail = async (req, res, next) => {
     const mailTransporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "niv.upadhayay10@gmail.com",
-        pass: "nfbnxezwkpsiwyde",
+        user: "akashtripathi2002@gmail.com",
+        pass: "hifa kuvp ddsm xrep",
       },
 
       tls: {
@@ -162,7 +162,7 @@ const sendEmail = async (req, res, next) => {
     });
 
     const mailDetails = {
-      from: "niv.upadhayay10@gmail.com",
+      from: "akashtripathi2002@gmail.com",
       subject: "Reset Password Request",
       to: email,
       text: `Your OTP for password reset is: ${otp}`,
