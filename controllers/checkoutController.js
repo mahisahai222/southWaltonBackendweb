@@ -5,13 +5,22 @@ const Bookform = require('../models/checkoutModel'); // Adjust the path accordin
 const router = express.Router();
 
 // Create a new booking form
+// const createBookform = async (req, res) => {
+//     try {
+//         const bookform = new Bookform(req.body);
+//         const savedForm = await bookform.save();
+//         res.status(201).json(savedForm);
+//     } catch (error) {
+//         res.status(400).json({ message: error.message });
+//     }
+// };
 const createBookform = async (req, res) => {
     try {
-        const bookform = new Bookform(req.body);
-        const savedForm = await bookform.save();
-        res.status(201).json(savedForm);
+        const bookform = new Bookform(req.body);  // Create a new bookform with the request body data
+        const savedForm = await bookform.save();  // Save the bookform to the database
+        res.status(201).json({ id: savedForm._id });  // Respond with only the saved form ID
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({ message: error.message });  // Respond with error message in case of failure
     }
 };
 

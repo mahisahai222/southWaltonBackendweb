@@ -17,6 +17,10 @@ const paymentSchema=mongoose.Schema(
             type:String,
             require:false
         },
+        bookingId:{
+            type:String,
+            require:false
+        },
         amount:{
             type :String,
             require:false
