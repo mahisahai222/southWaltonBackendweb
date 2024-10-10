@@ -12,6 +12,7 @@ const vehicleRoutes = require('./routes/vehicleRoute');
 const contactRoutes = require('./routes/contactUsRoute');
 const checkoutRoutes= require('./routes/checkoutRoute')
 const payment = require('./routes/paymentRoute');
+const Reserv= require('./routes/reserveRoute')
 const pay=require('./routes/payRoute');
 
 
@@ -51,10 +52,14 @@ app.use('/api/vehicle', vehicleRoutes);
 
 // to create bookingForm
 
-app.use('/api/book',checkoutRoutes)
+app.use('/api/book',checkoutRoutes);
 
 // to create contactForm
-app.use('/api/create',contactRoutes)
+app.use('/api/create',contactRoutes);
+
+// Reserve
+
+app.use('/api/reserve',Reserv);
 
 //payment creation
 
