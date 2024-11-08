@@ -22,7 +22,7 @@ const DriverSchema = new mongoose.Schema({
         required: false,
     },
     dexperience: {
-        type: Number,
+        type: String,
         required: false,
     }
 });
@@ -47,6 +47,10 @@ const BookformSchema = new mongoose.Schema({
     bdropDate:{
         type:Date,
         required:false,
+    },
+    reservationId: {
+        type: String,
+        required: false
     },
     
     bname: {

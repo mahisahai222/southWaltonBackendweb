@@ -9,6 +9,11 @@ const reserveSchema = mongoose.Schema(
             type: String,
             required: false
         },
+        userId:{
+            type: String,
+            required: false
+        },
+   
         pickdate: {
             type: Date,  // Consider using Date type
             required: false
