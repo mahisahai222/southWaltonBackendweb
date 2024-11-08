@@ -71,7 +71,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 //Response handler Middleware
 
 app.use((obj, req, res, next) => {
-    const statusCode = obj.status || 5000;
+    const statusCode = obj.status || 500;
     const message = obj.message || "Something went wrong!";
     return res.status(statusCode).json({
         success: [200, 201, 204].some(a => a === obj.status) ? true : false,
