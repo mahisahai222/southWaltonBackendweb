@@ -14,6 +14,7 @@ const checkoutRoutes= require('./routes/checkoutRoute')
 const payment = require('./routes/paymentRoute');
 const Reserv= require('./routes/reserveRoute')
 const pay=require('./routes/payRoute');
+const {createPDF}=require('./functions/generatePdf')
 
 
 //
@@ -65,7 +66,26 @@ app.use('/api/reserve',Reserv);
 
 app.use('/api/payment',payment);
 app.use('/api/pay',pay);
+//generate pdf 
+app.post('/generate-pdf', async (req, res) => {
+    try {
+        
+        // Create PDF with the provided client data
+        const pdfData = await createPDF();
 
+        const fileName = `Report.pdf`;
+
+        // Set headers and send the generated PDF as a response
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`); // Use Content-Disposition to suggest filename
+
+        // Send the generated PDF file
+        res.send(pdfData.pdfBuffer);
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        res.status(500).send('Failed to generate PDF');
+    }
+});
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 //Response handler Middleware

@@ -125,8 +125,10 @@ const registerAdmin = async (req, res, next) => {
 };
 
 const generateOTP = () => {
-  return otpGenerator.generate(6, { upperCase: false, specialChars: false });
+  return Math.floor(1000 + Math.random() * 9000); 
 };
+
+console.log(generateOTP());
 
 //send reset mail
 
