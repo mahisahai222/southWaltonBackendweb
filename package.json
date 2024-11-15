@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.673.0",
+    "@aws-sdk/client-s3": "^3.693.0",
     "@aws-sdk/s3-request-presigner": "^3.673.0",
     "aws-sdk": "^2.1691.0",
     "bcrypt": "^5.1.1",
@@ -32,6 +32,7 @@
     "otp-gen-agent": "^1.1.4",
     "otp-generation": "^1.0.5",
     "otp-generator": "^4.0.1",
+    "pdf-lib": "^1.17.1",
     "react-signature-canvas": "^1.0.6",
     "sharp": "^0.33.5",
     "stripe": "^15.12.0",

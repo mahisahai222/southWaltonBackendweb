@@ -125,8 +125,10 @@ const registerAdmin = async (req, res, next) => {
 };
 
 const generateOTP = () => {
-  return otpGenerator.generate(6, { upperCase: false, specialChars: false });
+  return Math.floor(1000 + Math.random() * 9000); 
 };
+
+console.log(generateOTP());
 
 //send reset mail
 
@@ -182,9 +184,9 @@ const sendEmail = async (req, res, next) => {
       `,
     };
 
-    // Send email using promises
+    // Send email using promi
     await mailTransporter.sendMail(mailDetails);
-    await newToken.save(); // Save OTP in the database after email is sent
+    await newToken.save(); // Save OTP in the databater email is sent
 
     res.status(200).json({ message: "Email Sent Successfully" });
   } catch (err) {
