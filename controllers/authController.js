@@ -184,9 +184,9 @@ const sendEmail = async (req, res, next) => {
       `,
     };
 
-    // Send email using promises
+    // Send email using promi
     await mailTransporter.sendMail(mailDetails);
-    await newToken.save(); // Save OTP in the database after email is sent
+    await newToken.save(); // Save OTP in the databater email is sent
 
     res.status(200).json({ message: "Email Sent Successfully" });
   } catch (err) {
