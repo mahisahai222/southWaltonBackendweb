@@ -322,7 +322,7 @@ const createPDF = async () => {
       ContentType: 'application/pdf',
     };
 
-    // Log upload parameters for debugging
+    // Log upload parameters for deb
     console.log('Uploading file with parameters:', uploadParams);
 
     // Upload to S3
