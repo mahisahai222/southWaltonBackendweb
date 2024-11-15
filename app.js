@@ -14,6 +14,7 @@ const checkoutRoutes= require('./routes/checkoutRoute')
 const payment = require('./routes/paymentRoute');
 const Reserv= require('./routes/reserveRoute')
 const pay=require('./routes/payRoute');
+const requestRoute = require('./routes/requestRoute');
 
 
 //
@@ -67,7 +68,7 @@ app.use('/api/payment',payment);
 app.use('/api/pay',pay);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
+app.use('/api/request', requestRoute);
 //Response handler Middleware
 
 app.use((obj, req, res, next) => {
