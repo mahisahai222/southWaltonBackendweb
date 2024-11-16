@@ -3,6 +3,6 @@ const {CreatecontactForm}=require('../controllers/contactusController')
 
 const router =express.Router();
 
-router.post('/Creeate' , CreatecontactForm);
+router.post('/creeate' , CreatecontactForm);
 
-module.exports=router;
+module.exports=router;    
