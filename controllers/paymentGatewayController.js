@@ -75,6 +75,7 @@ const createPaymentIntent = async (req, res) => {
             clientSecret: paymentIntent.client_secret,
             paymentRequestId,
             transactionId: paymentIntent.id,
+            
         });
     } catch (error) {
         console.error('Error creating payment intent:', error);

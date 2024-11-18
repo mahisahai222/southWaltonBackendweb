@@ -349,49 +349,52 @@ const axios = require('axios'); // For fetching the image from the S3 URL
 const SignModel = require('../models/signModel'); // Import the signModel for user data
 
 const createPDF = async (userId) => {
-    try {
-      console.log("Bucket Name: ", process.env.AWS_S3_BUCKET_NAME);
-      console.log("AWS Region: ", process.env.AWS_REGION);
-  
-      const bucketName = process.env.AWS_S3_BUCKET_NAME;
-      if (!bucketName) {
-        throw new Error("S3_BUCKET_NAME is missing from environment variables.");
-      }
-  
-      // Fetch the user and their image
-      const user = await SignModel.findOne({ userId });
-      if (!user || !user.image) {
-        throw new Error("User or image not found");
-      }
-  
-      const imageUrl = user.image; // Assuming `image` contains the S3 URL
-      console.log("User Image URL:", imageUrl);
-  
-      // Fetch the image as a buffer from the S3 URL
-      const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-      const imageBuffer = Buffer.from(response.data);
-  
-      // Create a new PDFDocument
-      const pdfDoc = await PDFDocument.create();
-      let page = pdfDoc.addPage([600, 800]); // Adjusted page size for the text
-  
-      // Add header content to the PDF
-      page.drawText('Agreement', {
-        x: 50,
-        y: 750,
-        size: 20,
-        color: rgb(0, 0.53, 0.71),
-      });
-  
-      // Define the static text
-      const text = `
-      All deliveries will be made in the afternoon, starting from 2 PM, unless otherwise arranged. 
-      The exact delivery time will correspond to your reservation. All pickups are scheduled for 8 AM unless specified differently. 
-      Kindly ensure the cart is ready and fully charged by this time. If the cart is not at the designated drop-off location by 8 AM, 
-      an additional fee of $75 will be charged for the driver to make a return trip.
-      The valid and collectible liability insurance and personal injury protection insurance of any authorized rental or leasing driver shall serve as the primary coverage for the liability and personal injury protection limits required under Sections 324.021(7) and 627.736 of the Florida Statutes. Failure to return rented property or equipment upon the expiration of the rental period, as well as failure to pay all amounts due ( including costs for damages ), constitutes prima facie evidence of intent to defraud and is punishable in accordance with Section 812.155 of the Florida Statutes.
+  try {
+    console.log("Bucket Name: ", process.env.AWS_S3_BUCKET_NAME);
+    console.log("AWS Region: ", process.env.AWS_REGION);
 
-The Renter(s) attest that he/she is of at least 21 years of age and that he/she possesses a valid driver’s license and insurance as required by law. The operator(s)/renter(s) represents and warrants that he/she is insured under a policy of insurance which would provide coverage or injuries to the operator/renter and medical bills incurred as well as for damage to the person and property of others should an accident occur during the operation or use of the rented vehicle. The operator(s)/renter(s) attest that no other person shall drive the rental vehicle mentioned herein during the terms of this rental agreement or while rental vehicle is in possession of renter except for the authorized drivers . Notice: Rental and leasing drivers insurance to be primary. The valid and collective liability insurance and personal injury protection insurance of any authorized rental or leasing driver is primary to the limits of liability and personal injury coverage required by SS.324.021(7) and 627.736, Florida Statutes. -You are hereby notified that by signing this contract below, you agree that your own liability, personal injury protection and comp/collision will provide primary insurance coverage up to its full policy limits. -The renter agrees to return the rental property, or have ready for return, at the initial delivery address immediately upon completion of the rental period in condition equal to that in which it was received with normal wear and tear accepted. The renter agrees that if he or she has not returned said vehicle within 1 hour of the agreed upon time and at the above mentioned and agreed upon address, or is the vehicle is abandoned, he or she will bear all expenses incurred by South Walton Carts LLC in attempting to locate and recover said vehicle, and hereby waves all recourse against South Walton Carts LLC or other authority responsible for renter’s arrest or prosecution, even though the renter may consider such arrest or prosecution to be false, malicious or unjust. -In the event that the rental property becomes unsafe or in a state of disrepair, the Renter agrees to immediately discontinue use of property, and promptly notify South Walton Carts LLC. The renter understands that in the event the property shall become inoperable through no fault of the renter, South Walton Carts LLC will take reasonable steps to have the vehicle repaired or replaced. In the event a replacement is not available, the Rentor at his discretion may modify the rental agreement to reflect an adjustment of price on aprorated basis. -The renter(s)/operator(s) understand that a Low Speed Vehicle is a motorized vehicle that is only permitted on roads of 35 mph or less and ALL TRAFFIC LAWS MUST BE OBEYED. The renter(s)/operator(s) represent and warrant that he/she is familiar with the traffic rules, laws and regulations of the municipality wherein the rented vehicle is to be operated and will at all times comply strictly with the same. No driver under the age of 21 years old is allowed to drive.
+    const bucketName = process.env.AWS_S3_BUCKET_NAME;
+    if (!bucketName) {
+      throw new Error("S3_BUCKET_NAME is missing from environment variables.");
+    }
+
+    // Fetch the user and their image
+    const user = await SignModel.findOne({ userId });
+    if (!user || !user.image) {
+      throw new Error("User or image not found");
+    }
+
+    const imageUrl = user.image; // Assuming `image` contains the S3 URL
+    console.log("User Image URL:", imageUrl);
+
+    // Fetch the image as a buffer from the S3 URL
+    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+    const imageBuffer = Buffer.from(response.data);
+
+    // Create a new PDFDocument
+    const pdfDoc = await PDFDocument.create();
+    let page = pdfDoc.addPage([600, 800]); // Adjusted page size for the text
+
+    // Add header content to the PDF
+    page.drawText('Agreement', {
+      x: 50,
+      y: 750,
+      size: 20,
+      color: rgb(0, 0.53, 0.71),
+    });
+
+    // Define the static text
+    const text = `
+    All deliveries will be made in the afternoon, starting from 2 PM, unless otherwise arranged. 
+    The exact delivery time will correspond to your reservation. All pickups are scheduled for 8 AM unless specified differently. 
+    Kindly ensure the cart is ready and fully charged by this time. If the cart is not at the designated drop-off location by 8 AM, 
+    an additional fee of $75 will be charged for the driver to make a return trip.
+    The valid and collectible liability insurance and personal injury protection insurance of any authorized rental or leasing driver 
+    shall serve as the primary coverage for the liability and personal injury protection limits required under Sections 324.021(7) and 
+    627.736 of the Florida Statutes. Failure to return rented property or equipment upon the expiration of the rental period, as well as 
+    failure to pay all amounts due (including costs for damages), constitutes prima facie evidence of intent to defraud and is punishable 
+    in accordance with Section 812.155 of the Florida Statutes.
+    The Renter(s) attest that he/she is of at least 21 years of age and that he/she possesses a valid driver’s license and insurance as required by law. The operator(s)/renter(s) represents and warrants that he/she is insured under a policy of insurance which would provide coverage or injuries to the operator/renter and medical bills incurred as well as for damage to the person and property of others should an accident occur during the operation or use of the rented vehicle. The operator(s)/renter(s) attest that no other person shall drive the rental vehicle mentioned herein during the terms of this rental agreement or while rental vehicle is in possession of renter except for the authorized drivers . Notice: Rental and leasing drivers insurance to be primary. The valid and collective liability insurance and personal injury protection insurance of any authorized rental or leasing driver is primary to the limits of liability and personal injury coverage required by SS.324.021(7) and 627.736, Florida Statutes. -You are hereby notified that by signing this contract below, you agree that your own liability, personal injury protection and comp/collision will provide primary insurance coverage up to its full policy limits. -The renter agrees to return the rental property, or have ready for return, at the initial delivery address immediately upon completion of the rental period in condition equal to that in which it was received with normal wear and tear accepted. The renter agrees that if he or she has not returned said vehicle within 1 hour of the agreed upon time and at the above mentioned and agreed upon address, or is the vehicle is abandoned, he or she will bear all expenses incurred by South Walton Carts LLC in attempting to locate and recover said vehicle, and hereby waves all recourse against South Walton Carts LLC or other authority responsible for renter’s arrest or prosecution, even though the renter may consider such arrest or prosecution to be false, malicious or unjust. -In the event that the rental property becomes unsafe or in a state of disrepair, the Renter agrees to immediately discontinue use of property, and promptly notify South Walton Carts LLC. The renter understands that in the event the property shall become inoperable through no fault of the renter, South Walton Carts LLC will take reasonable steps to have the vehicle repaired or replaced. In the event a replacement is not available, the Rentor at his discretion may modify the rental agreement to reflect an adjustment of price on aprorated basis. -The renter(s)/operator(s) understand that a Low Speed Vehicle is a motorized vehicle that is only permitted on roads of 35 mph or less and ALL TRAFFIC LAWS MUST BE OBEYED. The renter(s)/operator(s) represent and warrant that he/she is familiar with the traffic rules, laws and regulations of the municipality wherein the rented vehicle is to be operated and will at all times comply strictly with the same. No driver under the age of 21 years old is allowed to drive.
 Other Terms :
 Acknowledgment of Receipt: The renter acknowledges receipt of the described personal property. Both parties agree that the renter inspected and accepted the property at the time of delivery, confirming it was in good and serviceable condition.
 Liability for Loss or Damage: The renter agrees to pay for any loss or damage to the rental property, including all associated parts, attachments, keys, and tires. Tampering with, altering, or replacing any parts or components of the rental property is prohibited. If the rental property is found to have been tampered with or altered, the renter agrees to cover all repair costs and any costs associated with restoring the property, including loss of use. The renter's credit card or purchase order will be charged for any damages, theft, or loss on a “cash on demand” basis, up to the value of the rental property. Rental fees will continue to accrue until the lost rental property is paid in full.
@@ -500,112 +503,110 @@ We understand this may seem like a lot of rules, but our goal is to ensure our c
 Check-in Damage Report Options
 This agreement states that the responsible party will select and abide by one of the terms for the delivery of the rental cart. The responsible party must choose YES for one option and NO for the other. The first option is free, while the sec
 
+    `;
 
-      `;
-  
-      const fontSize = 12;
-      const lineHeight = 16;
-      const marginLeft = 50;
-      const marginRight = 50;
-      const textWidth = 600 - marginLeft - marginRight;
-      let currentY = 720;
-  
-      const font = await pdfDoc.embedStandardFont('Helvetica');
-      const wrappedLines = [];
-  
-      text.split('\n').forEach((paragraph) => {
-        const words = paragraph.trim().split(' ');
-        let line = '';
-        words.forEach((word) => {
-          const lineWidth = font.widthOfTextAtSize(line + word + ' ', fontSize);
-          if (lineWidth > textWidth) {
-            wrappedLines.push(line.trim());
-            line = word + ' ';
-          } else {
-            line += word + ' ';
-          }
-        });
-        if (line.trim() !== '') {
+    const fontSize = 12;
+    const lineHeight = 16;
+    const marginLeft = 50;
+    const marginRight = 50;
+    const textWidth = 600 - marginLeft - marginRight;
+    let currentY = 720;
+
+    const font = await pdfDoc.embedStandardFont('Helvetica');
+    const wrappedLines = [];
+
+    text.split('\n').forEach((paragraph) => {
+      const words = paragraph.trim().split(' ');
+      let line = '';
+      words.forEach((word) => {
+        const lineWidth = font.widthOfTextAtSize(line + word + ' ', fontSize);
+        if (lineWidth > textWidth) {
           wrappedLines.push(line.trim());
+          line = word + ' ';
+        } else {
+          line += word + ' ';
         }
-        wrappedLines.push('');
       });
-  
-      wrappedLines.forEach((line) => {
-        if (currentY < 50) {
-          page = pdfDoc.addPage([600, 800]);
-          currentY = 750;
-        }
-        page.drawText(line, { x: marginLeft, y: currentY, size: fontSize, color: rgb(0, 0, 0) });
-        currentY -= lineHeight;
-      });
-  
-      // Embed the user image (making the image smaller and aligning it to the right side)
-      const embeddedImage = await pdfDoc.embedPng(imageBuffer); // Use embedJpg for JPG images
-      const scaleFactor = 0.3; // Scale image to 30% of its original size
-      const { width, height } = embeddedImage.scale(scaleFactor);
-  
-      // Calculate the position for the image on the right-hand side
-      const imageXPosition = 600 - width - 20; // Right alignment with 20px margin
-      const imageYPosition = currentY - height - 20; // Position image just below the text
-  
-      // If currentY is too low to fit the image, create a new page
-      if (imageYPosition < 50) {
-        page = pdfDoc.addPage([600, 800]);
-        currentY = 750; // Reset Y position for the new page
+      if (line.trim() !== '') {
+        wrappedLines.push(line.trim());
       }
-  
-      // Add the image to the PDF on the right-hand side
-      page.drawImage(embeddedImage, {
-        x: imageXPosition,
-        y: imageYPosition,
-        width,
-        height,
-      });
-  
-      // Save the PDF to a buffer
-      const pdfBytes = await pdfDoc.save();
-  
-      const fileName = `User_${userId}_ImportantInformation.pdf`;
-      const s3 = new S3Client({
-        region: process.env.AWS_REGION,
-        credentials: {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        },
-      });
-  
-      const uploadParams = {
-        Bucket: bucketName,
-        Key: fileName,
-        Body: Buffer.from(pdfBytes),
-        ContentType: 'application/pdf',
-      };
-  
-      console.log('Uploading file with parameters:', uploadParams);
-  
-      // Upload to S3
-      const result = await s3.send(new PutObjectCommand(uploadParams));
-      const fileUrl = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-      console.log(`PDF uploaded successfully: ${fileUrl}`);
-  
-      // Update the user's record in the database with the PDF URL
-      user.pdF = fileUrl;
-      await user.save();
-      console.log('User record updated with PDF URL:', fileUrl);
-  
-      return {
-        message: 'PDF uploaded successfully and link saved to database',
-        url: fileUrl,
-      };
-    } catch (error) {
-      console.error('Error generating or uploading PDF:', error);
-      throw new Error('PDF generation or upload failed');
+      wrappedLines.push('');
+    });
+
+    wrappedLines.forEach((line) => {
+      if (currentY < 50) {
+        page = pdfDoc.addPage([600, 800]);
+        currentY = 750;
+      }
+      page.drawText(line, { x: marginLeft, y: currentY, size: fontSize, color: rgb(0, 0, 0) });
+      currentY -= lineHeight;
+    });
+
+    // Embed the user image (making the image smaller and aligning it to the right side)
+    const embedImage = imageBuffer.toString('base64').includes('image/png') 
+      ? await pdfDoc.embedPng(imageBuffer) 
+      : await pdfDoc.embedJpg(imageBuffer);
+      
+    const scaleFactor = 0.3; // Scale image to 30% of its original size
+    const { width, height } = embedImage.scale(scaleFactor);
+
+    // Calculate the position for the image on the right-hand side
+    const imageXPosition = 600 - width - 20; // Right alignment with 20px margin
+    const imageYPosition = currentY - height - 20; // Position image just below the text
+
+    // If currentY is too low to fit the image, create a new page
+    if (imageYPosition < 50) {
+      page = pdfDoc.addPage([600, 800]);
+      currentY = 750; // Reset Y position for the new page
     }
-  };
-  
-  
-  module.exports = { createPDF };
-  
+
+    // Add the image to the PDF on the right-hand side
+    page.drawImage(embedImage, {
+      x: imageXPosition,
+      y: imageYPosition,
+      width,
+      height,
+    });
+
+    // Save the PDF to a buffer
+    const pdfBytes = await pdfDoc.save();
+
+    const fileName = `User_${userId}_ImportantInformation.pdf`;
+    const s3 = new S3Client({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+
+    const uploadParams = {
+      Bucket: bucketName,
+      Key: fileName,
+      Body: Buffer.from(pdfBytes),
+      ContentType: 'application/pdf',
+    };
+
+    console.log('Uploading file with parameters:', uploadParams);
+
+    // Upload to S3
+    const result = await s3.send(new PutObjectCommand(uploadParams));
+    const fileUrl = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+    console.log(`PDF uploaded successfully: ${fileUrl}`);
+
+    // Update the user's record in the database with the PDF URL
+    user.pdf = fileUrl;
+    await user.save();
+    console.log('User record updated with PDF URL:', fileUrl);
+
+    return {
+      message: 'PDF uploaded successfully and link saved to database',
+      url: fileUrl,
+    };
+  } catch (error) {
+    console.error('Error generating or uploading PDF:', error);
+    throw new Error('PDF generation or upload failed');
+  }
+};
 
 module.exports = { createPDF };
