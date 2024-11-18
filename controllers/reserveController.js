@@ -8,7 +8,7 @@ const router = express.Router();
 const createReservation = async (req, res) => {
     try {
         const reserveform = new Reserve(req.body);
-        const savedForm = await reserveform.save();
+        const savedForm = await reserveform.save();     
         res.status(201).json({ id: savedForm._id });
     } catch (error) {
         res.status(400).json({ message: error.message });
