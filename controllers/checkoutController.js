@@ -210,6 +210,33 @@ const bookingHistoryByUserId = async (req, res,next) => {
     }
 };
 
+const getLatestPaymentByUser = async (req, res, next) => {
+  try {
+      const userId = req.params.userId; 
+
+
+      const latestPayment = await Payment.findOne({ userId }).sort({ createdAt: -1 });
+
+      if (!latestPayment) {
+          return next(createError(404, "No payments found for this user"));
+      }
+
+
+      const bookingDetails = await Bookform.findOne({ _id: latestPayment.bookingId });
+
+  
+      const response = {
+          ...latestPayment.toObject(), 
+          bookingDetails, 
+      };
+
+      return next(createSuccess(200, "Latest Payment with Booking Details", response));
+  } catch (error) {
+      return next(createError(500, "Internal Server Error"));
+  }
+};
+
+
 module.exports = {
-  createBooking,bookingHistoryByUserId
+  createBooking,bookingHistoryByUserId,getLatestPaymentByUser
 };
