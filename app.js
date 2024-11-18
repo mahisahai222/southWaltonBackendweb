@@ -69,11 +69,19 @@ app.use('/api/pay',pay);
 //generate pdf 
 app.post('/generate-pdf', async (req, res) => {
     try {
-        
-        // Create PDF with the provided client data
-        const pdfData = await createPDF();
+        // Extract the userId from the request body, query, or params
+        const { userId } = req.body; // Assuming `userId` is sent in the request body
+        console.log("Received userId:", userId);
 
-        const fileName = `Report.pdf`;
+        // Validate the userId
+        if (!userId) {
+            return res.status(400).json({ error: "User ID is required to generate PDF" });
+        }
+
+        // Create PDF with the provided userId
+        const pdfData = await createPDF(userId);
+
+        const fileName = `User_${userId}_Report.pdf`;
 
         // Set headers and send the generated PDF as a response
         res.setHeader('Content-Type', 'application/pdf');
@@ -82,13 +90,12 @@ app.post('/generate-pdf', async (req, res) => {
         // Send the generated PDF file
         res.send(pdfData.pdfBuffer);
     } catch (error) {
-        console.error('Error generating PDF:', error);
-        res.status(500).send('Failed to generate PDF');
+        console.error('Error generating PDF:', error.message);
+        res.status(500).json({ error: 'Failed to generate PDF', details: error.message });
     }
 });
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/api/request', requestRoute);
-//Response handler Middleware
 
 app.use((obj, req, res, next) => {
     const statusCode = obj.status || 500;
