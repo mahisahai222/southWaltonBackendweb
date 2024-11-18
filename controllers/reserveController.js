@@ -7,18 +7,17 @@ const createError = require('../middleware/error')
 const createSuccess = require('../middleware/success')
 
 
-// Create a new reservation
+
 const createReservation = async (req, res) => {
     try {
         const reserveform = new Reserve(req.body);
         const savedForm = await reserveform.save();     
         res.status(201).json({ id: savedForm._id });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({ message: error.message });        
     }
 };
-
-// Get all reservations
+ssssssssssss
 const getAllReservations = async (req, res) => {
     try {
         const reservations = await Reserve.find();
