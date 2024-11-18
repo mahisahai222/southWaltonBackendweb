@@ -14,7 +14,7 @@ const checkoutRoutes= require('./routes/checkoutRoute')
 const payment = require('./routes/paymentRoute');
 const Reserv= require('./routes/reserveRoute')
 const pay=require('./routes/payRoute');
-const {createPDF}=require('./functions/generatePdf')
+
 
 
 //
@@ -96,8 +96,6 @@ app.post('/generate-pdf', async (req, res) => {
 });
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-//Response handler M    
 
 app.use((obj, req, res, next) => {
     const statusCode = obj.status || 500;

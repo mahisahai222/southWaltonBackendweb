@@ -80,6 +80,10 @@
 // controllers/bookingController.js
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const Bookform = require('../models/checkoutModel'); // Adjust the path as needed
+const Payment = require('../models/PaymentModel')
+const Reservation = require('../models/reserveModel'); // Adjust the path to your Reservation model
+const createError = require('../middleware/error')
+const createSuccess = require('../middleware/success');
 
 // Configure S3
 const s3 = new S3Client({
@@ -174,6 +178,65 @@ const createBooking = async (req, res) => {
 };
 
 
+const bookingHistoryByUserId = async (req, res,next) => {
+    const { userId } = req.params;
+
+    try {
+
+        const payments = await Payment.find({ userId });
+
+        const paymentHistory = await Promise.all(
+            payments.map(async (payment) => {
+                const bookingDetails = payment.bookingId
+                    ? await Bookform.findOne({ _id: payment.bookingId })
+                    : null;
+
+                const reservationDetails = payment.reservation
+                    ? await Reservation.findOne({ _id: payment.reservation })
+                    : null;
+
+                return {
+                    ...payment._doc,
+                    bookingDetails,
+                    reservationDetails,
+                };
+            })
+        );
+        return next(createSuccess(200, "History by userId", paymentHistory))
+    } catch (error) {
+  
+        return next(createError(500, "Error fetching payment history"))
+
+    }
+};
+
+const getLatestPaymentByUser = async (req, res, next) => {
+  try {
+      const userId = req.params.userId; 
+
+
+      const latestPayment = await Payment.findOne({ userId }).sort({ createdAt: -1 });
+
+      if (!latestPayment) {
+          return next(createError(404, "No payments found for this user"));
+      }
+
+
+      const bookingDetails = await Bookform.findOne({ _id: latestPayment.bookingId });
+
+  
+      const response = {
+          ...latestPayment.toObject(), 
+          bookingDetails, 
+      };
+
+      return next(createSuccess(200, "Latest Payment with Booking Details", response));
+  } catch (error) {
+      return next(createError(500, "Internal Server Error"));
+  }
+};
+
+
 module.exports = {
-  createBooking,
+  createBooking,bookingHistoryByUserId,getLatestPaymentByUser
 };

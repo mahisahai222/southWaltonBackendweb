@@ -15,11 +15,11 @@ const reserveSchema = mongoose.Schema(
         },
    
         pickdate: {
-            type: Date,  // Consider using Date type
+            type: Date, 
             required: false
         },
         dropdate: {
-            type: Date,  // Consider using Date type
+            type: Date, 
             required: false
         },
         days: {
@@ -42,6 +42,9 @@ const reserveSchema = mongoose.Schema(
             type: Boolean,
             required: false  // Added required: false for consistency
         }
+    },
+    {
+        timestamps: true
     }
 );
 
