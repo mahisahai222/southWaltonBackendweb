@@ -17,7 +17,6 @@ const createReservation = async (req, res) => {
         res.status(400).json({ message: error.message });        
     }
 };
-ssssssssssss
 const getAllReservations = async (req, res) => {
     try {
         const reservations = await Reserve.find();
