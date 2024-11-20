@@ -26,7 +26,7 @@ const reserveSchema = mongoose.Schema(
             type: String,
             required: false
         },
-        vehicleid:{
+        vehicleId:{
             type:String,
             require:false
         },
