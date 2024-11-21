@@ -5,8 +5,10 @@ const { createBooking,bookingHistoryByUserId,getLatestPaymentByUser } = require(
 
 const router = express.Router();
 
-// Route to create booking with file uploads
-router.post('/create', upload.fields([{ name: 'drivers[][license]', maxCount: 1 }, { name: 'drivers[][insurance]', maxCount: 1 }]), createBooking);
+router.post('/create',upload.fields([
+    { name: 'dpolicy', maxCount: 3 },
+    { name: 'dlicense', maxCount: 3 },
+]), createBooking);
 router.get('/history/:userId', bookingHistoryByUserId);
 router.get('/latestBooking/:userId', getLatestPaymentByUser);
 
