@@ -1,91 +1,35 @@
- const mongoose = require('mongoose');
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const DriverSchema = new mongoose.Schema({
-    dname: {
-        type: String,
-        required: false,
-    },
-    dphone: {
-        type: Number,
-        required: false,
-    },
-    demail: {
-        type: String,
-        required: false
-    },
-    dlicense: {
-        type: String,
-        required: false,
-    },
-    dpolicy: {
-        type: String,
-        required: false,
-    },
-    dexperience: {
-        type: String,
-        required: false,
+const BookformSchema = new Schema({
+    bname: { type: String, required: true },
+    bphone: { type: Number, required: true },
+    bemail: { type: String, required: true },
+    bsize: { type: Number, required: true },
+    baddress: { type: String, required: false },
+    baddressh: { type: String, required: false },
+    paymentId: { type: Schema.Types.ObjectId, ref: 'Payment', required: false },
+    reservationId: { type: Schema.Types.ObjectId, ref: 'Reservation', required: false },
+    vehiclesId: { type: String, required: false },
+    driver: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver', default: null },
+    status: { type: String, enum: ['PENDING', 'DELIVERED', 'COMPLETED'], default: 'PENDING' },
+
+    // Adding customerDrivers
+    customerDrivers: [{
+        dphone: { type: String, required: true },
+        demail: { type: String, required: true },
+        dexperience: { type: String, required: true },
+        dname: { type: String, required: true },
+        dpolicy: { type: String, required: true }, // Storing image URL or path
+        dlicense: { type: String, required: true }, // Storing image URL or path
+    }]
+}, { timestamps: true });
+
+BookformSchema.pre('save', async function (next) {
+    if (this.isModified('status') && this.status === 'COMPLETED') {
+        await this.remove();
     }
+    next();
 });
-
-const BookformSchema = new mongoose.Schema({
-    bpickup:{
-        type:String,
-        required:false,
-    },
-    bdrop:{
-        type:String,
-        required:false,
-    },
-    vehiclesId:{
-        type:String,
-        require:false
-    },
-    bpickDate:{
-        type:Date,
-        required:false,
-    },
-    bdropDate:{
-        type:Date,
-        required:false,
-    },
-    reservationId: {
-        type: String,
-        required: false
-    },
-    
-    bname: {
-        type: String,
-        required: false,
-    },
-    bphone: {
-        type: Number,
-        required: false,
-    },
-    bemail: {
-        type: String,
-        required: false,
-    },
-    bsize: {
-        type: Number,
-        required: false,
-    },
-    baddress: {
-        type: String,
-        required: false,
-    },
-    baddressh: {
-        type: String,
-        required: false,
-    },
-    paymentId:{
-        type: String,
-        default:false
-    },
-    drivers: [DriverSchema]
-},
-{
-    timestamps: true
-}
-);
 
 module.exports = mongoose.model('Bookform', BookformSchema);
