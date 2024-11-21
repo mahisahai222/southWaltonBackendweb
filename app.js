@@ -14,7 +14,7 @@ const checkoutRoutes= require('./routes/checkoutRoute')
 const payment = require('./routes/paymentRoute');
 const Reserv= require('./routes/reserveRoute')
 const pay=require('./routes/payRoute');
-
+const  { createPDF} =require ('./functions/generatePdf')
 
 
 //

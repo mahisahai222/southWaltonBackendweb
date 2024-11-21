@@ -145,7 +145,7 @@
 //     });
 // };
 const Image = require('../models/signModel');
-const upload = require('../middleware/multer'); // Updated multer middleware
+const upload = require('../middleware/multer');
 const { S3 } = require('@aws-sdk/client-s3');
 
 const s3 = new S3({
@@ -156,8 +156,8 @@ const s3 = new S3({
     region: process.env.AWS_REGION,
 });
 
-// Controller to save image URL with user ID
-exports.saveImageUrl = (req, res) => {
+exports.saveImageUrl = async (req, res) => {
+    // Use multer middleware
     upload.single('image')(req, res, async (err) => {
         if (err) {
             return res.status(400).json({
@@ -166,48 +166,48 @@ exports.saveImageUrl = (req, res) => {
             });
         }
 
+        const { userId } = req.body;
+        const { file } = req;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'User ID is required.' });
+        }
+
+        if (!file) {
+            return res.status(400).json({ success: false, message: 'Image is required.' });
+        }
+
         try {
-            const { userId } = req.body;
-
-            if (!userId) {
-                return res.status(400).json({ message: 'User ID is required.' });
-            }
-
-            const { file } = req;
-            if (!file) {
-                return res.status(400).json({ message: 'Image is required.' });
-            }
+            // Sanitize the file name by replacing spaces with hyphens
+            const sanitizedFileName = `${Date.now()}-${file.originalname.replace(/ /g, '-')}`;
 
             // S3 upload parameters
             const params = {
                 Bucket: process.env.AWS_S3_BUCKET_NAME,
-                Key: `${Date.now()}-${file.originalname}`, // File name
+                Key: sanitizedFileName,
                 Body: file.buffer,
                 ContentType: file.mimetype,
             };
 
             // Upload to S3
-            const uploadResult = await s3.putObject(params);
+            await s3.putObject(params);
 
-            if (!uploadResult) {
-                return res.status(500).json({ message: 'Failed to upload image to S3.' });
-            }
+            // Construct the file URL
+            const fileUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${sanitizedFileName}`;
 
-            // Construct the S3 file URL
-            const fileUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
-
-            // Save image URL and userId to database
+            // Save image URL and userId to the database
             const newImage = new Image({ userId, image: fileUrl });
             await newImage.save();
 
-            res.status(201).json({
+            // Return success response
+            return res.status(201).json({
                 success: true,
                 message: 'Image URL saved successfully.',
                 data: newImage,
             });
         } catch (error) {
             console.error('Error saving image URL:', error);
-            res.status(500).json({ message: 'Internal server error.', error: error.message });
+            return res.status(500).json({ success: false, message: 'Internal server error.' });
         }
     });
 };
