@@ -106,10 +106,19 @@ const bookingHistoryByUserId = async (req, res, next) => {
                     ? await Reservation.findOne({ _id: payment.reservation })
                     : null;
 
+                let vehicleDetails = null;
+                if (reservationDetails && reservationDetails.vehicleId) {
+                    // Fetch vehicle details from the Vehicle collection
+                    vehicleDetails = await Vehicle.findOne({ _id: reservationDetails.vehicleId });
+                }
+
                 return {
                     ...payment._doc,
                     bookingDetails,
-                    reservationDetails,
+                    reservationDetails: {
+                        ...reservationDetails?._doc,
+                        vehicleDetails, // Attach fetched vehicle details
+                    },
                 };
             })
         );
@@ -119,6 +128,7 @@ const bookingHistoryByUserId = async (req, res, next) => {
         return next(createError(500, "Error fetching payment history"));
     }
 };
+
 
 // Get Latest Payment by User ID
 const getLatestPaymentByUser = async (req, res, next) => {
