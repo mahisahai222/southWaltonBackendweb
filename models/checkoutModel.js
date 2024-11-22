@@ -1,11 +1,19 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const CustomerDriverSchema=new Schema ({
+    dphone: { type: String, required: true },
+        demail: { type: String, required: true },
+        dexperience: { type: String, required: true },
+        dname: { type: String, required: true },
+        dpolicy: { type: String, required: true }, // Storing image URL or path
+        dlicense: { type: String, required: true }, // Storing image URL or path
+})
 const BookformSchema = new Schema({
     bname: { type: String, required: true },
     bphone: { type: Number, required: true },
     bemail: { type: String, required: true },
-    bsize: { type: Number, required: true },
+    bsize: { type: String, required: true },
     baddress: { type: String, required: false },
     baddressh: { type: String, required: false },
     paymentId: { type: Schema.Types.ObjectId, ref: 'Payment', required: false },
@@ -15,14 +23,7 @@ const BookformSchema = new Schema({
     status: { type: String, enum: ['PENDING', 'DELIVERED', 'COMPLETED'], default: 'PENDING' },
 
     // Adding customerDrivers
-    customerDrivers: [{
-        dphone: { type: String, required: true },
-        demail: { type: String, required: true },
-        dexperience: { type: String, required: true },
-        dname: { type: String, required: true },
-        dpolicy: { type: String, required: true }, // Storing image URL or path
-        dlicense: { type: String, required: true }, // Storing image URL or path
-    }]
+    customerDrivers: [CustomerDriverSchema]
 }, { timestamps: true });
 
 BookformSchema.pre('save', async function (next) {

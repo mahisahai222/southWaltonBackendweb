@@ -1,15 +1,13 @@
-
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const Bookform = require('../models/checkoutModel'); // Adjust the path as needed
-const Payment = require('../models/PaymentModel')
+const Payment = require('../models/PaymentModel');
 const Reservation = require('../models/reserveModel'); // Adjust the path to your Reservation model
-const Vehicle = require('../models/vehicleModel'); 
+const Vehicle = require('../models/vehicleModel');
 
 const upload = require('../middleware/multer'); // Assuming your multer middleware is set up as provided earlier
 
-const createError = require('../middleware/error')
+const createError = require('../middleware/error');
 const createSuccess = require('../middleware/success');
-
 
 const s3 = new S3Client({
     region: process.env.AWS_REGION,
@@ -35,8 +33,17 @@ const uploadToS3 = async (file) => {
 // Create Booking
 const createBooking = async (req, res) => {
     try {
-        const { bname, bphone, bemail, bsize, baddress, baddressh, customerDrivers } = req.body;
+        const { 
+            bname, 
+            bphone, 
+            bemail, 
+            bsize, 
+            baddress, 
+            baddressh, 
+            customerDrivers 
+        } = req.body;
 
+        // Extract driver details and policy/license files from the request body
         const dpolicyFile = req.files['dpolicy']?.[0];
         const dlicenseFile = req.files['dlicense']?.[0];
 
@@ -48,6 +55,22 @@ const createBooking = async (req, res) => {
         const dpolicyUrl = await uploadToS3(dpolicyFile);
         const dlicenseUrl = await uploadToS3(dlicenseFile);
 
+        // Parse customerDrivers if it is passed as a JSON string
+        const parsedCustomerDrivers = JSON.parse(customerDrivers);
+
+        // Ensure customer drivers have all required fields (dname, demail, dphone, dexperience, dpolicy, dlicense)
+        const updatedCustomerDrivers = parsedCustomerDrivers.map(driver => ({
+            ...driver,
+            dpolicy: dpolicyUrl,
+            dlicense: dlicenseUrl,
+            // Include other required fields
+            dname: driver.dname, 
+            demail: driver.demail, 
+            dphone: driver.dphone, 
+            dexperience: driver.dexperience
+        }));
+
+        // Create booking object
         const booking = new Bookform({
             bname,
             bphone,
@@ -55,11 +78,7 @@ const createBooking = async (req, res) => {
             bsize,
             baddress,
             baddressh,
-            customerDrivers: [{
-                ...JSON.parse(customerDrivers),
-                dpolicy: dpolicyUrl,
-                dlicense: dlicenseUrl,
-            }]
+            customerDrivers: updatedCustomerDrivers
         });
 
         await booking.save();
@@ -70,14 +89,11 @@ const createBooking = async (req, res) => {
     }
 };
 
-
-
-
-const bookingHistoryByUserId = async (req, res,next) => {
+// Get Booking History by User ID
+const bookingHistoryByUserId = async (req, res, next) => {
     const { userId } = req.params;
 
     try {
-
         const payments = await Payment.find({ userId });
 
         const paymentHistory = await Promise.all(
@@ -90,57 +106,68 @@ const bookingHistoryByUserId = async (req, res,next) => {
                     ? await Reservation.findOne({ _id: payment.reservation })
                     : null;
 
+                let vehicleDetails = null;
+                if (reservationDetails && reservationDetails.vehicleId) {
+                    // Fetch vehicle details from the Vehicle collection
+                    vehicleDetails = await Vehicle.findOne({ _id: reservationDetails.vehicleId });
+                }
+
                 return {
                     ...payment._doc,
                     bookingDetails,
-                    reservationDetails,
+                    reservationDetails: {
+                        ...reservationDetails?._doc,
+                        vehicleDetails, // Attach fetched vehicle details
+                    },
                 };
             })
         );
-        return next(createSuccess(200, "History by userId", paymentHistory))
+
+        return next(createSuccess(200, "History by userId", paymentHistory));
     } catch (error) {
-  
-        return next(createError(500, "Error fetching payment history"))
-
+        return next(createError(500, "Error fetching payment history"));
     }
 };
 
+
+// Get Latest Payment by User ID
 const getLatestPaymentByUser = async (req, res, next) => {
-  try {
-    const userId = req.params.userId;
+    try {
+        const userId = req.params.userId;
 
-    const latestPayment = await Payment.findOne({ userId }).sort({ createdAt: -1 });
+        const latestPayment = await Payment.findOne({ userId }).sort({ createdAt: -1 });
 
-    if (!latestPayment) {
-      return next(createError(404, "No payments found for this user"));
+        if (!latestPayment) {
+            return next(createError(404, "No payments found for this user"));
+        }
+        const bookingDetails = await Bookform.findOne({ _id: latestPayment.bookingId });
+
+        if (!bookingDetails) {
+            return next(createError(404, "Booking details not found"));
+        }
+
+        let vehicleDetails = null;
+        if (bookingDetails.vehiclesId) {
+            vehicleDetails = await Vehicle.findOne({ _id: bookingDetails.vehiclesId });
+        }
+
+        const response = {
+            ...latestPayment.toObject(),
+            bookingDetails: {
+                ...bookingDetails.toObject(),
+                vehicleDetails,
+            },
+        };
+
+        return next(createSuccess(200, "Latest Payment with Booking and Vehicle Details", response));
+    } catch (error) {
+        return next(createError(500, "Internal Server Error"));
     }
-    const bookingDetails = await Bookform.findOne({ _id: latestPayment.bookingId });
-
-    if (!bookingDetails) {
-      return next(createError(404, "Booking details not found"));
-    }
-
-    let vehicleDetails = null;
-    if (bookingDetails.vehiclesId) {
-      vehicleDetails = await Vehicle.findOne({ _id: bookingDetails.vehiclesId });
-    }
-
-    const response = {
-      ...latestPayment.toObject(),
-      bookingDetails: {
-        ...bookingDetails.toObject(),
-        vehicleDetails, 
-      },
-    };
-
-    return next(createSuccess(200, "Latest Payment with Booking and Vehicle Details", response));
-  } catch (error) {
-    return next(createError(500, "Internal Server Error"));
-  }
 };
-
-
 
 module.exports = {
-  createBooking,bookingHistoryByUserId,getLatestPaymentByUser
+    createBooking,
+    bookingHistoryByUserId,
+    getLatestPaymentByUser
 };
+
