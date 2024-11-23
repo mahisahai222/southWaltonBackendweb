@@ -94,7 +94,8 @@ const bookingHistoryByUserId = async (req, res, next) => {
     const { userId } = req.params;
 
     try {
-        const payments = await Payment.find({ userId });
+        // Fetch only the amount field from Payment model
+        const payments = await Payment.find({ userId }).select('amount bookingId reservation');
 
         const paymentHistory = await Promise.all(
             payments.map(async (payment) => {
@@ -103,13 +104,30 @@ const bookingHistoryByUserId = async (req, res, next) => {
                     : null;
 
                 const reservationDetails = payment.reservation
-                    ? await Reservation.findOne({ _id: payment.reservation })
+                    ? await Reservation.findOne(
+                          { _id: payment.reservation },
+                          'pickdate dropdate days pickup drop vehicleId' // Select required fields
+                      )
                     : null;
 
+                let vehicleDetails = null;
+                if (reservationDetails && reservationDetails.vehicleId) {
+                    // Fetch only vname and image from Vehicle collection
+                    vehicleDetails = await Vehicle.findOne(
+                        { _id: reservationDetails.vehicleId },
+                        'vname image'
+                    );
+                }
+
                 return {
-                    ...payment._doc,
+                    amount: payment.amount, // Only include amount from Payment model
                     bookingDetails,
-                    reservationDetails,
+                    reservationDetails: reservationDetails
+                        ? {
+                              ...reservationDetails._doc,
+                              vehicleDetails, // Attach selected vehicle details
+                          }
+                        : null,
                 };
             })
         );
@@ -119,6 +137,8 @@ const bookingHistoryByUserId = async (req, res, next) => {
         return next(createError(500, "Error fetching payment history"));
     }
 };
+
+
 
 // Get Latest Payment by User ID
 const getLatestPaymentByUser = async (req, res, next) => {
