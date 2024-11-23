@@ -38,7 +38,7 @@ const signUp = async (req, res, next) => {
 
     if (existingUser) {
       // If the email is already registered, return an error
-      return next(createError(400, "Email is already registered"));
+      return res.status(400).json({ message: "Email is already registered" });
     }
 
     // If email is not taken, create a new user
