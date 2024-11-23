@@ -1,10 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Reserve = require('../models/reserveModel');
-
+const Payment = require('../models/PaymentModel');
 const router = express.Router();
 const createError = require('../middleware/error')
 const createSuccess = require('../middleware/success')
+const Vehicle = require('../models/vehicleModel');
 
 
 
@@ -56,23 +57,66 @@ const updateReservation = async (req, res,next) => {
     }
 };
 
-const getLatestReservation = async (req, res, next) => {
+const getLatestPaymentByUserId = async (req, res,next) => {
+    const { userId } = req.params;
+
     try {
-        const userId = req.params.userId; // Get userId from the request parameters
 
-        const latestReservation = await Reserve.findOne({ userId }) // Filter by userId
-            .sort({ createdAt: -1 }); // Sort by createdAt in descending order
+        const latestPayment = await Payment.findOne({ userId }).sort({ createdAt: -1 });
 
-        if (!latestReservation) {
-            return next(createError(404, "No reservations found for this user"));
+        if (!latestPayment) {
+            return next(createError(404, "No payment found for this user"))
+    
         }
 
-        return next(createSuccess(200, "Latest Booking", latestReservation));
+        const filteredPayment = {
+            transactionId: latestPayment.transactionId,
+            bookingId: latestPayment.bookingId,
+            reservation: latestPayment.reservation,
+            userId: latestPayment.userId,
+        };
+
+        let filteredReservationDetails = null;
+        let filteredVehicleDetails = null;
+
+        if (latestPayment.reservation) {
+            const reservationDetails = await Reserve.findOne({
+                _id: latestPayment.reservation
+            });
+
+            if (reservationDetails) {
+                filteredReservationDetails = {
+                    pickup: reservationDetails.pickup,
+                    drop: reservationDetails.drop,
+                    pickdate: reservationDetails.pickdate,
+                    dropdate: reservationDetails.dropdate,
+                };
+
+                if (reservationDetails.vehicleId) {
+                    const vehicleDetails = await Vehicle.findOne({
+                        _id: reservationDetails.vehicleId
+                    });
+
+                    if (vehicleDetails) {
+                        filteredVehicleDetails = {
+                            vname: vehicleDetails.vname,
+                            passenger: vehicleDetails.passenger,
+                            image: vehicleDetails.image,
+                        };
+                    }
+                }
+            }
+        }
+
+        return next(createSuccess(200, "Latest Reservation", {
+            paymentDetails: filteredPayment,
+            reservationDetails: filteredReservationDetails,
+            vehicleDetails: filteredVehicleDetails,
+        }))
     } catch (error) {
-        return next(createError(500, "Internal Server Error"));
+        return next(createError(500, "Internal Server Error"))
     }
 };
-
 
 
     
@@ -81,5 +125,5 @@ module.exports = {
     getAllReservations,
     getReservationById,
     updateReservation,
-    getLatestReservation
+    getLatestPaymentByUserId
 };
