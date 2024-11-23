@@ -12,10 +12,10 @@ const Vehicle = require('../models/vehicleModel');
 const createReservation = async (req, res) => {
     try {
         const reserveform = new Reserve(req.body);
-        const savedForm = await reserveform.save();     
+        const savedForm = await reserveform.save();
         res.status(201).json({ id: savedForm._id });
     } catch (error) {
-        res.status(400).json({ message: error.message });        
+        res.status(400).json({ message: error.message });
     }
 };
 const getAllReservations = async (req, res) => {
@@ -41,7 +41,7 @@ const getReservationById = async (req, res) => {
 };
 
 // Update a reservation
-const updateReservation = async (req, res,next) => {
+const updateReservation = async (req, res, next) => {
     try {
         const updatedReservation = await Reserve.findByIdAndUpdate(
             req.params.id,
@@ -57,19 +57,17 @@ const updateReservation = async (req, res,next) => {
     }
 };
 
-const getLatestPaymentByUserId = async (req, res,next) => {
+const getLatestPaymentByUserId = async (req, res, next) => {
     const { userId } = req.params;
 
     try {
-
         const latestPayment = await Payment.findOne({ userId }).sort({ createdAt: -1 });
 
         if (!latestPayment) {
-            return next(createError(404, "No payment found for this user"))
-    
+            return next(createError(404, "payment not found"))
         }
-
         const filteredPayment = {
+            _id: latestPayment._id,
             transactionId: latestPayment.transactionId,
             bookingId: latestPayment.bookingId,
             reservation: latestPayment.reservation,
@@ -86,6 +84,7 @@ const getLatestPaymentByUserId = async (req, res,next) => {
 
             if (reservationDetails) {
                 filteredReservationDetails = {
+                    _id: reservationDetails._id,
                     pickup: reservationDetails.pickup,
                     drop: reservationDetails.drop,
                     pickdate: reservationDetails.pickdate,
@@ -99,6 +98,7 @@ const getLatestPaymentByUserId = async (req, res,next) => {
 
                     if (vehicleDetails) {
                         filteredVehicleDetails = {
+                            _id: vehicleDetails._id,
                             vname: vehicleDetails.vname,
                             passenger: vehicleDetails.passenger,
                             image: vehicleDetails.image,
@@ -108,8 +108,9 @@ const getLatestPaymentByUserId = async (req, res,next) => {
             }
         }
 
+    
         return next(createSuccess(200, "Latest Reservation", {
-            paymentDetails: filteredPayment,
+            payment: filteredPayment,
             reservationDetails: filteredReservationDetails,
             vehicleDetails: filteredVehicleDetails,
         }))
@@ -119,7 +120,6 @@ const getLatestPaymentByUserId = async (req, res,next) => {
 };
 
 
-    
 module.exports = {
     createReservation,
     getAllReservations,
