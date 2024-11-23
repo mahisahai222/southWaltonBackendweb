@@ -1,7 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Payment = require('../models/PaymentModel'); // Ensure this path is correct
-
+const fs = require('fs');
+const PDFDocument = require('pdfkit');
 const router = express.Router();
 
 // Handler function to create and save payment info
@@ -35,8 +36,60 @@ const getAllPayments = async (req, res) => {
     }
 };
 
+const generateInvoice = async (req, res) => {
+    const { paymentId } = req.params;
+
+    try {
+        // Fetch the payment details by paymentId
+        const payment = await Payment.findById(paymentId);
+
+        if (!payment) {
+            return res.status(404).json({ message: 'Payment not found' });
+        }
+
+        // Create a new PDF document
+        const doc = new PDFDocument();
+
+        // Set headers for the response
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=invoice-${paymentId}.pdf`);
+
+        // Pipe the PDF stream to the response
+        doc.pipe(res);
+
+        // Add invoice content to the PDF
+        doc
+            .fontSize(25)
+            .text('Invoice', { align: 'center' })
+            .moveDown();
+
+        doc.fontSize(14).text(`Invoice ID: ${paymentId}`);
+        doc.text(`Transaction ID: ${payment.transactionId}`);
+        doc.text(`User ID: ${payment.userId}`);
+        doc.text(`Email: ${payment.email}`);
+        doc.text(`Phone: ${payment.phone}`);
+        doc.text(`Booking ID: ${payment.bookingId}`);
+        doc.text(`Reservation: ${payment.reservation}`);
+        doc.text(`Amount Paid: ₹${payment.amount}`);
+        doc.text(`Date: ${new Date(payment.createdAt).toLocaleDateString()}`);
+
+        // Footer
+        doc
+            .moveDown()
+            .fontSize(10)
+            .text('Thank you for your payment!', { align: 'center' });
+
+        // Finalize the PDF
+        doc.end();
+    } catch (error) {
+        console.error('Error generating invoice:', error);
+        res.status(500).json({ message: 'Failed to generate invoice' });
+    }
+};
+
 // Export the handler functions
 module.exports = {
     PaymentInfo,
     getAllPayments,
+    generateInvoice
 };
