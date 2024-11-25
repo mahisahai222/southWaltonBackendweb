@@ -144,7 +144,7 @@ const createBooking = async (req, res) => {
       // Respond with the saved booking ID and other details
       res.status(201).json({ 
           message: 'Booking created successfully', 
-          bookingId: savedBooking._id, // Send the ID of the created booking
+          bookingId: savedBooking._id, // Send the ID of the create
           booking: savedBooking 
       });
   } catch (error) {
