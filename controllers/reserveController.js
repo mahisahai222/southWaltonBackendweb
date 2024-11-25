@@ -6,7 +6,7 @@ const router = express.Router();
 const createError = require('../middleware/error')
 const createSuccess = require('../middleware/success')
 const Vehicle = require('../models/vehicleModel');
-
+const Bookform = require('../models/checkoutModel'); 
 
 
 const createReservation = async (req, res) => {
@@ -61,11 +61,14 @@ const getLatestPaymentByUserId = async (req, res, next) => {
     const { userId } = req.params;
 
     try {
+
         const latestPayment = await Payment.findOne({ userId }).sort({ createdAt: -1 });
 
         if (!latestPayment) {
-            return next(createError(404, "payment not found"))
+            return next(createError(404, "Payment not found"));
         }
+
+
         const filteredPayment = {
             _id: latestPayment._id,
             transactionId: latestPayment.transactionId,
@@ -76,11 +79,10 @@ const getLatestPaymentByUserId = async (req, res, next) => {
 
         let filteredReservationDetails = null;
         let filteredVehicleDetails = null;
+        let bookingDetails = null;
 
-        if (latestPayment.reservation) {
-            const reservationDetails = await Reserve.findOne({
-                _id: latestPayment.reservation
-            });
+           if (latestPayment.reservation) {
+            const reservationDetails = await Reserve.findOne({ _id: latestPayment.reservation });
 
             if (reservationDetails) {
                 filteredReservationDetails = {
@@ -91,10 +93,9 @@ const getLatestPaymentByUserId = async (req, res, next) => {
                     dropdate: reservationDetails.dropdate,
                 };
 
+
                 if (reservationDetails.vehicleId) {
-                    const vehicleDetails = await Vehicle.findOne({
-                        _id: reservationDetails.vehicleId
-                    });
+                    const vehicleDetails = await Vehicle.findOne({ _id: reservationDetails.vehicleId });
 
                     if (vehicleDetails) {
                         filteredVehicleDetails = {
@@ -108,16 +109,31 @@ const getLatestPaymentByUserId = async (req, res, next) => {
             }
         }
 
-    
-        return next(createSuccess(200, "Latest Reservation", {
+        if (latestPayment.bookingId) {
+            const booking = await Bookform.findOne({ _id: latestPayment.bookingId });
+
+            if (booking) {
+                bookingDetails = {
+                    _id: booking._id,
+                    customerDrivers: booking.customerDrivers,
+                    status: booking.status,
+                   
+                };
+            }
+        }
+
+        return next(createSuccess(200, "Latest Payment Details", {
             payment: filteredPayment,
             reservationDetails: filteredReservationDetails,
             vehicleDetails: filteredVehicleDetails,
-        }))
+            bookingDetails: bookingDetails, 
+        }));
     } catch (error) {
-        return next(createError(500, "Internal Server Error"))
+        console.error(error);
+        return next(createError(500, "Internal Server Error"));
     }
 };
+
 
 
 module.exports = {
