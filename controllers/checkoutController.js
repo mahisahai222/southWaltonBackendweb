@@ -204,44 +204,9 @@ const bookingHistoryByUserId = async (req, res, next) => {
 
 
 
-// Get Latest Payment by User ID
-const getLatestPaymentByUser = async (req, res, next) => {
-    try {
-        const userId = req.params.userId;
-
-        const latestPayment = await Payment.findOne({ userId }).sort({ createdAt: -1 });
-
-        if (!latestPayment) {
-            return next(createError(404, "No payments found for this user"));
-        }
-        const bookingDetails = await Bookform.findOne({ _id: latestPayment.bookingId });
-
-        if (!bookingDetails) {
-            return next(createError(404, "Booking details not found"));
-        }
-
-        let vehicleDetails = null;
-        if (bookingDetails.vehiclesId) {
-            vehicleDetails = await Vehicle.findOne({ _id: bookingDetails.vehiclesId });
-        }
-
-        const response = {
-            ...latestPayment.toObject(),
-            bookingDetails: {
-                ...bookingDetails.toObject(),
-                vehicleDetails,
-            },
-        };
-
-        return next(createSuccess(200, "Latest Payment with Booking and Vehicle Details", response));
-    } catch (error) {
-        return next(createError(500, "Internal Server Error"));
-    }
-};
 
 module.exports = {
     createBooking,
-    bookingHistoryByUserId,
-    getLatestPaymentByUser
+    bookingHistoryByUserId
 };
 
