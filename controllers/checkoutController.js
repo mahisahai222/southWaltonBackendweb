@@ -31,62 +31,126 @@ const uploadToS3 = async (file) => {
 };
 
 // Create Booking
+// const createBooking = async (req, res) => {
+//     try {
+//         const { 
+//             bname, 
+//             bphone, 
+//             bemail, 
+//             bsize, 
+//             baddress, 
+//             baddressh, 
+//             customerDrivers 
+//         } = req.body;
+
+//         // Extract driver details and policy/license files from the request body
+//         const dpolicyFile = req.files['dpolicy']?.[0];
+//         const dlicenseFile = req.files['dlicense']?.[0];
+
+//         if (!dpolicyFile || !dlicenseFile) {
+//             return res.status(400).json({ message: 'dpolicy and dlicense images are required' });
+//         }
+
+//         // Upload images to S3
+//         const dpolicyUrl = await uploadToS3(dpolicyFile);
+//         const dlicenseUrl = await uploadToS3(dlicenseFile);
+
+//         // Parse customerDrivers if it is passed as a JSON string
+//         const parsedCustomerDrivers = JSON.parse(customerDrivers);
+
+//         // Ensure customer drivers have all required fields (dname, demail, dphone, dexperience, dpolicy, dlicense)
+//         const updatedCustomerDrivers = parsedCustomerDrivers.map(driver => ({
+//             ...driver,
+//             dpolicy: dpolicyUrl,
+//             dlicense: dlicenseUrl,
+//             // Include other required fields
+//             dname: driver.dname, 
+//             demail: driver.demail, 
+//             dphone: driver.dphone, 
+//             dexperience: driver.dexperience
+//         }));
+
+//         // Create booking object
+//         const booking = new Bookform({
+//             bname,
+//             bphone,
+//             bemail,
+//             bsize,
+//             baddress,
+//             baddressh,
+//             customerDrivers: updatedCustomerDrivers
+//         });
+
+//         await booking.save();
+//         res.status(201).json({ message: 'Booking created successfully', booking });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Internal Server Error', error: error.message });
+//     }
+// };
 const createBooking = async (req, res) => {
-    try {
-        const { 
-            bname, 
-            bphone, 
-            bemail, 
-            bsize, 
-            baddress, 
-            baddressh, 
-            customerDrivers 
-        } = req.body;
+  try {
+      const { 
+          bname, 
+          bphone, 
+          bemail, 
+          bsize, 
+          baddress, 
+          baddressh, 
+          customerDrivers 
+      } = req.body;
 
-        // Extract driver details and policy/license files from the request body
-        const dpolicyFile = req.files['dpolicy']?.[0];
-        const dlicenseFile = req.files['dlicense']?.[0];
+      // Extract driver details and policy/license files from the request body
+      const dpolicyFile = req.files['dpolicy']?.[0];
+      const dlicenseFile = req.files['dlicense']?.[0];
 
-        if (!dpolicyFile || !dlicenseFile) {
-            return res.status(400).json({ message: 'dpolicy and dlicense images are required' });
-        }
+      if (!dpolicyFile || !dlicenseFile) {
+          return res.status(400).json({ message: 'dpolicy and dlicense images are required' });
+      }
 
-        // Upload images to S3
-        const dpolicyUrl = await uploadToS3(dpolicyFile);
-        const dlicenseUrl = await uploadToS3(dlicenseFile);
+      // Upload images to S3
+      const dpolicyUrl = await uploadToS3(dpolicyFile);
+      const dlicenseUrl = await uploadToS3(dlicenseFile);
 
-        // Parse customerDrivers if it is passed as a JSON string
-        const parsedCustomerDrivers = JSON.parse(customerDrivers);
+      // Parse customerDrivers if it is passed as a JSON string
+      const parsedCustomerDrivers = JSON.parse(customerDrivers);
 
-        // Ensure customer drivers have all required fields (dname, demail, dphone, dexperience, dpolicy, dlicense)
-        const updatedCustomerDrivers = parsedCustomerDrivers.map(driver => ({
-            ...driver,
-            dpolicy: dpolicyUrl,
-            dlicense: dlicenseUrl,
-            // Include other required fields
-            dname: driver.dname, 
-            demail: driver.demail, 
-            dphone: driver.dphone, 
-            dexperience: driver.dexperience
-        }));
+      // Ensure customer drivers have all required fields (dname, demail, dphone, dexperience, dpolicy, dlicense)
+      const updatedCustomerDrivers = parsedCustomerDrivers.map(driver => ({
+          ...driver,
+          dpolicy: dpolicyUrl,
+          dlicense: dlicenseUrl,
+          // Include other required fields
+          dname: driver.dname, 
+          demail: driver.demail, 
+          dphone: driver.dphone, 
+          dexperience: driver.dexperience
+      }));
 
-        // Create booking object
-        const booking = new Bookform({
-            bname,
-            bphone,
-            bemail,
-            bsize,
-            baddress,
-            baddressh,
-            customerDrivers: updatedCustomerDrivers
-        });
+      // Create booking object
+      const booking = new Bookform({
+          bname,
+          bphone,
+          bemail,
+          bsize,
+          baddress,
+          baddressh,
+          customerDrivers: updatedCustomerDrivers
+      });
 
-        await booking.save();
-        res.status(201).json({ message: 'Booking created successfully', booking });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error', error: error.message });
-    }
+      // Save booking to the database
+      const savedBooking = await booking.save();
+
+      // Respond with the saved booking ID and other details
+      res.status(201).json({ 
+          message: 'Booking created successfully', 
+          bookingId: savedBooking._id, // Send the ID of the create
+          booking: savedBooking 
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
 };
 
 // Get Booking History by User ID
