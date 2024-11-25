@@ -211,3 +211,72 @@ exports.saveImageUrl = async (req, res) => {
         }
     });
 };
+exports.updateSign = async (req, res) => {
+    const { userId, image, pdf } = req.body;  // Assume image and pdf URLs are passed in the body
+
+    // Validate that userId is provided
+    if (!userId) {
+        return res.status(400).json({ success: false, message: 'User ID is required.' });
+    }
+
+    try {
+        // Find the existing image record by userId
+        const imageRecord = await Image.findOne({ userId });
+
+        if (!imageRecord) {
+            return res.status(404).json({ success: false, message: 'Image record not found.' });
+        }
+
+        // Prepare an object with the fields to update
+        const updateData = {};
+        if (image) {
+            updateData.image = image;  // Only update image if provided
+        }
+        if (pdf) {
+            updateData.pdf = pdf;  // Only update pdf if provided
+        }
+
+        // Update the image record using findByIdAndUpdate
+        const updatedImage = await Image.findByIdAndUpdate(
+            imageRecord._id,  // Use the _id of the image record found
+            { $set: updateData },  // Set the updated fields in the document
+            { new: true }  // Return the updated document
+        );
+
+        // Return the updated image record
+        return res.status(200).json({
+            success: true,
+            message: 'Image record updated successfully.',
+            data: updatedImage,  // Send the updated data back
+        });
+    } catch (error) {
+        console.error('Error updating image record:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error.', details: error.message });
+    }
+};
+exports.getImageByUserId = async (req, res) => {
+    const { userId } = req.params; // Retrieve userId from the URL parameter
+
+    if (!userId) {
+        return res.status(400).json({ success: false, message: 'User ID is required.' });
+    }
+
+    try {
+        // Find the image record by userId
+        const imageRecord = await Image.findOne({ userId });
+
+        if (!imageRecord) {
+            return res.status(404).json({ success: false, message: 'Image record not found.' });
+        }
+
+        // Return the image record including the image URL and PDF URL (if available)
+        return res.status(200).json({
+            success: true,
+            message: 'Image record retrieved successfully.',
+            data: imageRecord,
+        });
+    } catch (error) {
+        console.error('Error retrieving image record:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error.', details: error.message });
+    }
+};
