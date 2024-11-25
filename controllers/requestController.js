@@ -23,3 +23,16 @@ exports.getAllRequests = async (req, res, next) => {
       return next(createError(500, "Internal Server Error!"))
   }
 }
+
+exports.deleteRequest = async (req, res, next) => {
+  try {
+      const { id } = req.params;
+      const request = await Request.findByIdAndDelete(id);
+      if (!request) {
+          return next(createError(404, "Request Not Found"));
+      }
+      return next(createSuccess(200, "Request Deleted", request));
+  } catch (error) {
+      return next(createError(500, "Internal Server Error1"))
+  }
+}
