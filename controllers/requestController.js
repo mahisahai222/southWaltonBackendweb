@@ -13,3 +13,13 @@ exports.createRequest = async (req, res, next) => {
 };
 
 
+
+exports.getAllRequests = async (req, res, next) => {
+  try {
+      const request = await Request.find({});
+      return next(createSuccess(200, "All requests", request));
+
+  } catch (error) {
+      return next(createError(500, "Internal Server Error!"))
+  }
+}
