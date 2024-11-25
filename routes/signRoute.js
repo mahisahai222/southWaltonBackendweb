@@ -12,7 +12,7 @@
 
 // module.exports = router;
 const express = require('express');
-const { saveImageUrl ,getImageByUserId ,updateSign } = require('../controllers/signController');
+const { saveImageUrl ,getImageByUserId ,updateSign,getAllImages } = require('../controllers/signController');
 const multer = require('multer');
 
 const router = express.Router();
@@ -22,4 +22,5 @@ const upload = multer({ dest: 'uploads/' }); // Use the same storage configurati
 router.post('/save', saveImageUrl); // 'image' is the key for the file input
 router.put('/update-pdf', updateSign);
 router.get('/get-pdf/:userId', getImageByUserId);
+router.get('/get-sign', getAllImages);
 module.exports = router;

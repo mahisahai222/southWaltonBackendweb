@@ -280,3 +280,30 @@ exports.getImageByUserId = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Internal server error.', details: error.message });
     }
 };
+exports.getAllImages = async (req, res) => {
+    try {
+        // Retrieve all image records from the database
+        const allImages = await Image.find();
+
+        if (allImages.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No image records found.',
+            });
+        }
+
+        // Return all image records
+        return res.status(200).json({
+            success: true,
+            message: 'All image records retrieved successfully.',
+            data: allImages,
+        });
+    } catch (error) {
+        console.error('Error retrieving all image records:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error.',
+            details: error.message,
+        });
+    }
+};
