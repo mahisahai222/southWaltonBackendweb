@@ -81,7 +81,7 @@ const getUser = async (req, res, next) => {
 // const updateUser = async (req, res, next) => {
 //     try {
 //         const { id } = req.params;
-//         // const image = req.file ? `http://44.196.192.232:5001/api/user/uploads/${req.file.filename}`:null;
+//         // const image = req.file ? `http://18.209.197.35:5001/api/user/uploads/${req.file.filename}`:null;
 //         if (req.file) {
 //             const host = req.hostname;
 //             const port = process.env.PORT || 5001;
