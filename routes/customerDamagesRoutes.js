@@ -10,5 +10,7 @@ router.post(
 );
 
 router.get('/', customerDamagesController.getAllCustomerDamage); 
+router.get('/:id', customerDamagesController.getDamageById);
+router.delete('/:id', customerDamagesController.deleteDamage);
 
 module.exports = router;

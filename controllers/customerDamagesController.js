@@ -77,3 +77,27 @@ exports.getAllCustomerDamage = async (req, res,next) => {
   }
 };
 
+exports.deleteDamage = async (req, res, next) => {
+  try {
+      const { id } = req.params;
+      const damage = await CustomerDamage.findByIdAndDelete(id);
+      if (!damage) {
+          return next(createError(404, "Damage not found"));
+      }
+      return next(createSuccess(200, "Damage deleted", damage));
+  } catch (error) {
+      return next(createError(500, "Internal Server Error1"))
+  }
+}
+
+exports.getDamageById = async (req, res, next) => {
+  try {
+      const damage = await CustomerDamage.findById(req.params.id);
+      if (!damage) {
+          return next(createError(404, "Damage Not Found"));
+      }
+      return next(createSuccess(200, "Single Damage", damage));
+  } catch (error) {
+      return next(createError(500, "Internal Server Error1"))
+  }
+}
