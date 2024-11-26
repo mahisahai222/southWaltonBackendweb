@@ -371,8 +371,20 @@ const createPDF = async (userId) => {
     const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
     const imageBuffer = Buffer.from(response.data);
 
-    // Create a new PDFDocument
+    // Create a new PDFDocument (Now it's before image embedding)
     const pdfDoc = await PDFDocument.create();
+
+    // Determine image format using Content-Type
+    const contentType = response.headers['content-type'];
+    let embedImage;
+    if (contentType.includes('image/png')) {
+      embedImage = await pdfDoc.embedPng(imageBuffer);
+    } else if (contentType.includes('image/jpeg') || contentType.includes('image/jpg')) {
+      embedImage = await pdfDoc.embedJpg(imageBuffer);
+    } else {
+      throw new Error('Unsupported image format. Only PNG and JPG/JPEG are allowed.');
+    }
+
     let page = pdfDoc.addPage([600, 800]); // Adjusted page size for the text
 
     // Add header content to the PDF
@@ -394,7 +406,7 @@ const createPDF = async (userId) => {
     627.736 of the Florida Statutes. Failure to return rented property or equipment upon the expiration of the rental period, as well as 
     failure to pay all amounts due (including costs for damages), constitutes prima facie evidence of intent to defraud and is punishable 
     in accordance with Section 812.155 of the Florida Statutes.
-    The Renter(s) attest that he/she is of at least 21 years of age and that he/she possesses a valid driver’s license and insurance as required by law. The operator(s)/renter(s) represents and warrants that he/she is insured under a policy of insurance which would provide coverage or injuries to the operator/renter and medical bills incurred as well as for damage to the person and property of others should an accident occur during the operation or use of the rented vehicle. The operator(s)/renter(s) attest that no other person shall drive the rental vehicle mentioned herein during the terms of this rental agreement or while rental vehicle is in possession of renter except for the authorized drivers . Notice: Rental and leasing drivers insurance to be primary. The valid and collective liability insurance and personal injury protection insurance of any authorized rental or leasing driver is primary to the limits of liability and personal injury coverage required by SS.324.021(7) and 627.736, Florida Statutes. -You are hereby notified that by signing this contract below, you agree that your own liability, personal injury protection and comp/collision will provide primary insurance coverage up to its full policy limits. -The renter agrees to return the rental property, or have ready for return, at the initial delivery address immediately upon completion of the rental period in condition equal to that in which it was received with normal wear and tear accepted. The renter agrees that if he or she has not returned said vehicle within 1 hour of the agreed upon time and at the above mentioned and agreed upon address, or is the vehicle is abandoned, he or she will bear all expenses incurred by South Walton Carts LLC in attempting to locate and recover said vehicle, and hereby waves all recourse against South Walton Carts LLC or other authority responsible for renter’s arrest or prosecution, even though the renter may consider such arrest or prosecution to be false, malicious or unjust. -In the event that the rental property becomes unsafe or in a state of disrepair, the Renter agrees to immediately discontinue use of property, and promptly notify South Walton Carts LLC. The renter understands that in the event the property shall become inoperable through no fault of the renter, South Walton Carts LLC will take reasonable steps to have the vehicle repaired or replaced. In the event a replacement is not available, the Rentor at his discretion may modify the rental agreement to reflect an adjustment of price on aprorated basis. -The renter(s)/operator(s) understand that a Low Speed Vehicle is a motorized vehicle that is only permitted on roads of 35 mph or less and ALL TRAFFIC LAWS MUST BE OBEYED. The renter(s)/operator(s) represent and warrant that he/she is familiar with the traffic rules, laws and regulations of the municipality wherein the rented vehicle is to be operated and will at all times comply strictly with the same. No driver under the age of 21 years old is allowed to drive.
+     The Renter(s) attest that he/she is of at least 21 years of age and that he/she possesses a valid driver’s license and insurance as required by law. The operator(s)/renter(s) represents and warrants that he/she is insured under a policy of insurance which would provide coverage or injuries to the operator/renter and medical bills incurred as well as for damage to the person and property of others should an accident occur during the operation or use of the rented vehicle. The operator(s)/renter(s) attest that no other person shall drive the rental vehicle mentioned herein during the terms of this rental agreement or while rental vehicle is in possession of renter except for the authorized drivers . Notice: Rental and leasing drivers insurance to be primary. The valid and collective liability insurance and personal injury protection insurance of any authorized rental or leasing driver is primary to the limits of liability and personal injury coverage required by SS.324.021(7) and 627.736, Florida Statutes. -You are hereby notified that by signing this contract below, you agree that your own liability, personal injury protection and comp/collision will provide primary insurance coverage up to its full policy limits. -The renter agrees to return the rental property, or have ready for return, at the initial delivery address immediately upon completion of the rental period in condition equal to that in which it was received with normal wear and tear accepted. The renter agrees that if he or she has not returned said vehicle within 1 hour of the agreed upon time and at the above mentioned and agreed upon address, or is the vehicle is abandoned, he or she will bear all expenses incurred by South Walton Carts LLC in attempting to locate and recover said vehicle, and hereby waves all recourse against South Walton Carts LLC or other authority responsible for renter’s arrest or prosecution, even though the renter may consider such arrest or prosecution to be false, malicious or unjust. -In the event that the rental property becomes unsafe or in a state of disrepair, the Renter agrees to immediately discontinue use of property, and promptly notify South Walton Carts LLC. The renter understands that in the event the property shall become inoperable through no fault of the renter, South Walton Carts LLC will take reasonable steps to have the vehicle repaired or replaced. In the event a replacement is not available, the Rentor at his discretion may modify the rental agreement to reflect an adjustment of price on aprorated basis. -The renter(s)/operator(s) understand that a Low Speed Vehicle is a motorized vehicle that is only permitted on roads of 35 mph or less and ALL TRAFFIC LAWS MUST BE OBEYED. The renter(s)/operator(s) represent and warrant that he/she is familiar with the traffic rules, laws and regulations of the municipality wherein the rented vehicle is to be operated and will at all times comply strictly with the same. No driver under the age of 21 years old is allowed to drive.
 Other Terms :
 Acknowledgment of Receipt: The renter acknowledges receipt of the described personal property. Both parties agree that the renter inspected and accepted the property at the time of delivery, confirming it was in good and serviceable condition.
 Liability for Loss or Damage: The renter agrees to pay for any loss or damage to the rental property, including all associated parts, attachments, keys, and tires. Tampering with, altering, or replacing any parts or components of the rental property is prohibited. If the rental property is found to have been tampered with or altered, the renter agrees to cover all repair costs and any costs associated with restoring the property, including loss of use. The renter's credit card or purchase order will be charged for any damages, theft, or loss on a “cash on demand” basis, up to the value of the rental property. Rental fees will continue to accrue until the lost rental property is paid in full.
@@ -530,7 +542,7 @@ This agreement states that the responsible party will select and abide by one of
       if (line.trim() !== '') {
         wrappedLines.push(line.trim());
       }
-      wrappedLines.push('');
+      wrappedLines.push(''); // Add blank line between paragraphs
     });
 
     wrappedLines.forEach((line) => {
@@ -543,10 +555,6 @@ This agreement states that the responsible party will select and abide by one of
     });
 
     // Embed the user image (making the image smaller and aligning it to the right side)
-    const embedImage = imageBuffer.toString('base64').includes('image/png') 
-      ? await pdfDoc.embedPng(imageBuffer) 
-      : await pdfDoc.embedJpg(imageBuffer);
-      
     const scaleFactor = 0.3; // Scale image to 30% of its original size
     const { width, height } = embedImage.scale(scaleFactor);
 

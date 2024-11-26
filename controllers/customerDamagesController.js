@@ -68,4 +68,12 @@ exports.createCustomerDamage = async (req, res, next) => {
   }
 };
 
+exports.getAllCustomerDamage = async (req, res,next) => {
+  try {
+      const customerDamage = await CustomerDamage.find();
+      return next(createSuccess(200, "All Customer Damages", customerDamage));
+  } catch (error) {
+    return next(createError(500, "Internal Server Error!"))
+  }
+};
 
