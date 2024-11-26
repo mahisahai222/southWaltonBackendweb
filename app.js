@@ -13,6 +13,7 @@ const contactRoutes = require('./routes/contactUsRoute');
 const checkoutRoutes= require('./routes/checkoutRoute')
 const payment = require('./routes/paymentRoute');
 const Reserv= require('./routes/reserveRoute')
+const customerDamagesRoutes = require('./routes/customerDamagesRoutes');
 const requestRoute = require('./routes/requestRoute')
 const pay=require('./routes/payRoute');
 const  { createPDF} =require ('./functions/generatePdf')
@@ -64,7 +65,7 @@ app.use('/api/create',contactRoutes);
 app.use('/api/reserve',Reserv);
 
 app.use('/api/request',requestRoute);
-
+app.use('/api/customer-damages', customerDamagesRoutes);
 //payment creation
 
 app.use('/api/payment',payment);
