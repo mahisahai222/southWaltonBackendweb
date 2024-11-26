@@ -13,6 +13,7 @@ const contactRoutes = require('./routes/contactUsRoute');
 const checkoutRoutes= require('./routes/checkoutRoute')
 const payment = require('./routes/paymentRoute');
 const Reserv= require('./routes/reserveRoute')
+const requestRoute = require('./routes/requestRoute')
 const pay=require('./routes/payRoute');
 const  { createPDF} =require ('./functions/generatePdf')
 
@@ -61,6 +62,8 @@ app.use('/api/create',contactRoutes);
 // Reserve
 
 app.use('/api/reserve',Reserv);
+
+app.use('/api/request',requestRoute);
 
 //payment creation
 

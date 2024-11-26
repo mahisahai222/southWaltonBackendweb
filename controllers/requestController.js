@@ -13,3 +13,26 @@ exports.createRequest = async (req, res, next) => {
 };
 
 
+
+exports.getAllRequests = async (req, res, next) => {
+  try {
+      const request = await Request.find({});
+      return next(createSuccess(200, "All requests", request));
+
+  } catch (error) {
+      return next(createError(500, "Internal Server Error!"))
+  }
+}
+
+exports.deleteRequest = async (req, res, next) => {
+  try {
+      const { id } = req.params;
+      const request = await Request.findByIdAndDelete(id);
+      if (!request) {
+          return next(createError(404, "Request Not Found"));
+      }
+      return next(createSuccess(200, "Request Deleted", request));
+  } catch (error) {
+      return next(createError(500, "Internal Server Error1"))
+  }
+}
