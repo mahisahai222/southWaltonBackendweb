@@ -9,4 +9,6 @@ router.post(
   customerDamagesController.createCustomerDamage
 );
 
+router.get('/', customerDamagesController.getAllCustomerDamage); 
+
 module.exports = router;
