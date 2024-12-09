@@ -104,9 +104,9 @@ const createBooking = async (req, res) => {
       const dpolicyFile = req.files['dpolicy']?.[0];
       const dlicenseFile = req.files['dlicense']?.[0];
 
-      if (!dpolicyFile || !dlicenseFile) {
-          return res.status(400).json({ message: 'dpolicy and dlicense images are required' });
-      }
+    //   if (!dpolicyFile || !dlicenseFile) {
+    //       return res.status(400).json({ message: 'dpolicy and dlicense images are required' });
+    //   }
 
       // Upload images to S3
       const dpolicyUrl = await uploadToS3(dpolicyFile);
