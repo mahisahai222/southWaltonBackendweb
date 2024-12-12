@@ -4,6 +4,8 @@ const Payment = require('../models/PaymentModel'); // Ensure this path is correc
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
 const router = express.Router();
+const { sendInvoiceEmail } = require('../middleware/emailService');
+
 
 // Handler function to create and save payment info
 const PaymentInfo = async (req, res) => {
@@ -87,9 +89,38 @@ const generateInvoice = async (req, res) => {
     }
 };
 
+//invoicewithdetailsto user mail
+
+const sendInvoiceWithMail = async (req, res) => {
+    try {
+        const { paymentId } = req.params;
+
+        // Fetch payment details from the database
+        const payment = await Payment.findById(paymentId);
+
+        if (!payment) {
+            return res.status(404).json({ success: false, message: 'Payment not found' });
+        }
+
+        // Send invoice email
+        const emailResponse = await sendInvoiceEmail(payment);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Invoice email sent successfully',
+            emailResponse,
+        });
+    } catch (error) {
+        console.error('Error in sendInvoice:', error);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};
+
+
 // Export the handler functions
 module.exports = {
     PaymentInfo,
     getAllPayments,
-    generateInvoice
+    generateInvoice,
+    sendInvoiceWithMail
 };
