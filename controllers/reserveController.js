@@ -103,6 +103,7 @@ const getLatestPaymentByUserId = async (req, res, next) => {
                             vname: vehicleDetails.vname,
                             passenger: vehicleDetails.passenger,
                             image: vehicleDetails.image,
+                            tagNumber: vehicleDetails.tagNumber
                         };
                     }
                 }
