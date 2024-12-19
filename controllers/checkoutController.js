@@ -89,12 +89,13 @@ const createBooking = async (req, res) => {
 // Get Booking History by User ID
 const bookingHistoryByUserId = async (req, res, next) => {
     const { userId } = req.params;
+    const { page = 1, limit = 10, search = "" } = req.query; // Pagination and search query parameters
 
     try {
-        // Fetch only the amount field from Payment model
+        // Find payments for the user
         const payments = await Payment.find({ userId }).select('amount bookingId reservation');
 
-        const paymentHistory = await Promise.all(
+        const filteredPayments = await Promise.all(
             payments.map(async (payment) => {
                 const bookingDetails = payment.bookingId
                     ? await Bookform.findOne({ _id: payment.bookingId })
@@ -103,13 +104,12 @@ const bookingHistoryByUserId = async (req, res, next) => {
                 const reservationDetails = payment.reservation
                     ? await Reservation.findOne(
                           { _id: payment.reservation },
-                          'pickdate dropdate days pickup drop vehicleId' // Select required fields
+                          'pickdate dropdate days pickup drop vehicleId'
                       )
                     : null;
 
                 let vehicleDetails = null;
                 if (reservationDetails && reservationDetails.vehicleId) {
-                    // Fetch only vname and image from Vehicle collection
                     vehicleDetails = await Vehicle.findOne(
                         { _id: reservationDetails.vehicleId },
                         'vname image'
@@ -117,23 +117,41 @@ const bookingHistoryByUserId = async (req, res, next) => {
                 }
 
                 return {
-                    amount: payment.amount, // Only include amount from Payment model
+                    amount: payment.amount,
                     bookingDetails,
                     reservationDetails: reservationDetails
                         ? {
                               ...reservationDetails._doc,
-                              vehicleDetails, // Attach selected vehicle details
+                              vehicleDetails,
                           }
                         : null,
                 };
             })
         );
 
-        return next(createSuccess(200, "History by userId", paymentHistory));
+        // Search filter: filter by vehicle name (vname)
+        const searchedPayments = filteredPayments.filter((payment) => {
+            const vname = payment.reservationDetails?.vehicleDetails?.vname || "";
+            return vname.toLowerCase().includes(search.toLowerCase());
+        });
+
+        // Pagination
+        const startIndex = (page - 1) * limit;
+        const paginatedPayments = searchedPayments.slice(startIndex, startIndex + parseInt(limit));
+
+        return next(
+            createSuccess(200, "History by userId", {
+                total: searchedPayments.length,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                data: paginatedPayments,
+            })
+        );
     } catch (error) {
         return next(createError(500, "Error fetching payment history"));
     }
 };
+
 
 
 
