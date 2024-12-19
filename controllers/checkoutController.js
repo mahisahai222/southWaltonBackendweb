@@ -42,21 +42,21 @@ const createBooking = async (req, res) => {
           customerDrivers 
       } = req.body;
 
-    //   const dpolicyFile = req.files['dpolicy']?.[0];
-    //   const dlicenseFile = req.files['dlicense']?.[0];
+      const dpolicyFile = req.files['dpolicy']?.[0];
+      const dlicenseFile = req.files['dlicense']?.[0];
 
-    //   if (!dpolicyFile || !dlicenseFile) {
-    //       return res.status(400).json({ message: 'dpolicy and dlicense images are required' });
-    //   }
-    //   const dpolicyUrl = await uploadToS3(dpolicyFile);
-    //   const dlicenseUrl = await uploadToS3(dlicenseFile);
+      if (!dpolicyFile || !dlicenseFile) {
+          return res.status(400).json({ message: 'dpolicy and dlicense images are required' });
+      }
+      const dpolicyUrl = await uploadToS3(dpolicyFile);
+      const dlicenseUrl = await uploadToS3(dlicenseFile);
 
       const parsedCustomerDrivers = JSON.parse(customerDrivers);
 
       const updatedCustomerDrivers = parsedCustomerDrivers.map(driver => ({
           ...driver,
-        //   dpolicy: dpolicyUrl,
-        //   dlicense: dlicenseUrl,
+          dpolicy: dpolicyUrl,
+          dlicense: dlicenseUrl,
           dname: driver.dname, 
           demail: driver.demail, 
           dphone: driver.dphone, 
