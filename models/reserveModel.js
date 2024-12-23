@@ -42,6 +42,10 @@ const reserveSchema = mongoose.Schema(
             type: Boolean,
             required: false  // Added required: false for consistency
         },
+        accepted: {
+            type: Boolean,
+            default: false
+        },
         reserveAmount: {
             type: String,
             require: false
