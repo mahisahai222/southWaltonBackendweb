@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const UserSchema = mongoose.Schema(
     {
-        image:{
-            type:String,
-            required:false
+        image: {
+            type: String,
+            required: false
         },
         fullName: {
             type: String,
@@ -33,7 +33,9 @@ const UserSchema = mongoose.Schema(
             type: String,
             required: true
         },
-    },
+    }, {
+    timestamps: true
+}
 );
 
 module.exports = mongoose.model('User', UserSchema);
