@@ -112,7 +112,7 @@ const bookingHistoryByUserId = async (req, res, next) => {
                 if (reservationDetails && reservationDetails.vehicleId) {
                     vehicleDetails = await Vehicle.findOne(
                         { _id: reservationDetails.vehicleId },
-                        'vname image'
+                        'vname image tagNumber'
                     );
                 }
 
@@ -135,15 +135,20 @@ const bookingHistoryByUserId = async (req, res, next) => {
             return vname.toLowerCase().includes(search.toLowerCase());
         });
 
+        // Calculate total pages
+        const total = searchedPayments.length;
+        const totalPages = Math.ceil(total / limit);
+
         // Pagination
         const startIndex = (page - 1) * limit;
         const paginatedPayments = searchedPayments.slice(startIndex, startIndex + parseInt(limit));
 
         return next(
             createSuccess(200, "History by userId", {
-                total: searchedPayments.length,
+                total,
                 page: parseInt(page),
                 limit: parseInt(limit),
+                totalPages, // Add total pages to the response
                 data: paginatedPayments,
             })
         );
@@ -151,6 +156,7 @@ const bookingHistoryByUserId = async (req, res, next) => {
         return next(createError(500, "Error fetching payment history"));
     }
 };
+
 
 
 
