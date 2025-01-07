@@ -70,6 +70,7 @@ const createBooking = async (req, res) => {
           bsize,
           baddress,
           baddressh,
+          fromAdmin:false,
           customerDrivers: updatedCustomerDrivers
       });
 
