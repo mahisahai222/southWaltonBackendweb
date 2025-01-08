@@ -45,6 +45,11 @@ const reserveSchema = mongoose.Schema(
             required: false,
             default: false
         },
+        fromAdmin: {
+            type: Boolean,
+            required: false,
+            default: false
+        },
         accepted: {
             type: Boolean,
             default: false
