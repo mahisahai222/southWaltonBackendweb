@@ -31,61 +31,64 @@ const uploadToS3 = async (file) => {
 };
 
 const createBooking = async (req, res) => {
-  try {
-      const { 
-          bname, 
-          bphone, 
-          bemail, 
-          bsize, 
-          baddress, 
-          baddressh, 
-          customerDrivers 
-      } = req.body;
+    try {
+        const { 
+            bname, 
+            bphone, 
+            bemail, 
+            bsize, 
+            baddress, 
+            baddressh, 
+            customerDrivers 
+        } = req.body;
 
-      const dpolicyFile = req.files['dpolicy']?.[0];
-      const dlicenseFile = req.files['dlicense']?.[0];
+        const parsedCustomerDrivers = JSON.parse(customerDrivers);
 
-      if (!dpolicyFile || !dlicenseFile) {
-          return res.status(400).json({ message: 'dpolicy and dlicense images are required' });
-      }
-      const dpolicyUrl = await uploadToS3(dpolicyFile);
-      const dlicenseUrl = await uploadToS3(dlicenseFile);
+        const updatedCustomerDrivers = await Promise.all(
+            parsedCustomerDrivers.map(async (driver, index) => {
+                const dpolicyFile = req.files.find(file => file.fieldname === `dpolicy[${index}]`);
+                const dlicenseFile = req.files.find(file => file.fieldname === `dlicense[${index}]`);
 
-      const parsedCustomerDrivers = JSON.parse(customerDrivers);
+                if (!dpolicyFile || !dlicenseFile) {
+                    throw new Error(`dpolicy and dlicense are required for driver ${index + 1}`);
+                }
 
-      const updatedCustomerDrivers = parsedCustomerDrivers.map(driver => ({
-          ...driver,
-          dpolicy: dpolicyUrl,
-          dlicense: dlicenseUrl,
-          dname: driver.dname, 
-          demail: driver.demail, 
-          dphone: driver.dphone, 
-          dexperience: driver.dexperience
-      }));
+                const dpolicyUrl = await uploadToS3(dpolicyFile);
+                const dlicenseUrl = await uploadToS3(dlicenseFile);
 
-      const booking = new Bookform({
-          bname,
-          bphone,
-          bemail,
-          bsize,
-          baddress,
-          baddressh,
-          fromAdmin:false,
-          customerDrivers: updatedCustomerDrivers
-      });
+                return {
+                    ...driver,
+                    dpolicy: dpolicyUrl,
+                    dlicense: dlicenseUrl,
+                };
+            })
+        );
 
-      const savedBooking = await booking.save();
+        const booking = new Bookform({
+            bname,
+            bphone,
+            bemail,
+            bsize,
+            baddress,
+            baddressh,
+            fromAdmin: false,
+            customerDrivers: updatedCustomerDrivers,
+        });
 
-      res.status(201).json({ 
-          message: 'Booking created successfully', 
-          bookingId: savedBooking._id,
-          booking: savedBooking 
-      });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal Server Error', error: error.message });
-  }
+        const savedBooking = await booking.save();
+
+        res.status(201).json({
+            message: 'Booking created successfully',
+            bookingId: savedBooking._id,
+            booking: savedBooking,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
 };
+
+
 
 // Get Booking History by User ID
 const bookingHistoryByUserId = async (req, res, next) => {
