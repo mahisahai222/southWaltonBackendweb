@@ -23,7 +23,7 @@ const PaymentInfo = async (req, res) => {
             return res.status(404).json({ message: 'Reservation not found' });
         }
 
-        res.status(201).json({ payment: savedPayment, reservation: updatedReservation });
+        res.status(201).json(savedPayment);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
