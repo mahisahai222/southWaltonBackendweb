@@ -5,25 +5,29 @@ const fs = require('fs');
 const PDFDocument = require('pdfkit');
 const router = express.Router();
 const { sendInvoiceEmail } = require('../middleware/emailService');
-
+const Reserve = require('../models/reserveModel');
 
 // Handler function to create and save payment info
 const PaymentInfo = async (req, res) => {
     try {
-        // Create a new Payment instance with data from req.body
+        
         const createPayment = new Payment(req.body);
-
-        // Save the new Payment document to the database
         const savedPayment = await createPayment.save();
+        const updatedReservation = await Reserve.findByIdAndUpdate(
+            req.body.reservation, 
+            { accepted: true },  
+            { new: true }        
+        );
 
-        // Send a success response with the saved document
-        res.status(201).json(savedPayment);
+        if (!updatedReservation) {
+            return res.status(404).json({ message: 'Reservation not found' });
+        }
+
+        res.status(201).json({ payment: savedPayment, reservation: updatedReservation });
     } catch (error) {
-        // Send an error response if something goes wrong
         res.status(400).json({ message: error.message });
     }
 };
-
 // Handler function to fetch all payment records
 const getAllPayments = async (req, res) => {
     try {
