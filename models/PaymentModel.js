@@ -28,7 +28,12 @@ const paymentSchema = mongoose.Schema(
         amount: {
             type: String,
             require: false
-        }
+        },
+        fromAdmin: {
+            type: Boolean,
+            required: false,
+            default: false
+        },
 
     }
     , {
