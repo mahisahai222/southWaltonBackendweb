@@ -15,6 +15,7 @@ const payment = require('./routes/paymentRoute');
 const Reserv= require('./routes/reserveRoute')
 const customerDamagesRoutes = require('./routes/customerDamagesRoutes');
 const requestRoute = require('./routes/requestRoute')
+const invoiceRoutes = require('./routes/invoiceRoutes');
 const pay=require('./routes/payRoute');
 const  { createPDF} =require ('./functions/generatePdf')
 
@@ -70,6 +71,7 @@ app.use('/api/customer-damages', customerDamagesRoutes);
 
 app.use('/api/payment',payment);
 app.use('/api/pay',pay);
+app.use('/api/invoice', invoiceRoutes);
 //generate pdf 
 app.post('/generate-pdf', async (req, res) => {
     try {
