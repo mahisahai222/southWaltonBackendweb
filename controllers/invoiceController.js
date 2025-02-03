@@ -4,17 +4,17 @@ const { createInvoice,getClientId } = require('../middleware/freshbooksService')
 
 // Configure Nodemailer
 const transporter = nodemailer.createTransport({
-  service: 'Gmail', // Or use your email provider
+  service: 'Gmail', 
   auth: {
-    user: "ut.gupta29@gmail.com", // Your email
-    pass: "yver vjuu fvbb hcot", // Your email password
+    user: "development.aayaninfotech@gmail.com", 
+    pass: "defe qhhm kgmu ztkf", 
   },
 });
 
 // Function to send email
 const sendEmail = async (to, subject, text) => {
   const mailOptions = {
-    from: "ut.gupta29@gmail.com",
+    from: "development.aayaninfotech@gmail.com",
     to,
     subject,
     text,

@@ -4,15 +4,15 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
     service: 'gmail', // Use your email service provider
     auth: {
-        user: 'ut.gupta29@gmail.com', // Your email
-        pass: 'yver vjuu fvbb hcot', // Your email password or app password
+        user: 'development.aayaninfotech@gmail.com', // Your email
+        pass: 'defe qhhm kgmu ztkf', // Your email password or app password
     },
 });
 
 // Function to send invoice email
 exports.sendInvoiceEmail = async (payment) => {
     const mailOptions = {
-        from: 'ut.gupta29@gmail.com',
+        from: 'development.aayaninfotech@gmail.com',
         to: payment.email,
         subject: 'Invoice for Your Payment',
         html: `

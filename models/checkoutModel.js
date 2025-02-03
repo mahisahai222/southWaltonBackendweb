@@ -14,7 +14,7 @@ const BookformSchema = new Schema({
     bphone: { type: Number, required: true },
     bemail: { type: String, required: true },
     bsize: { type: String, required: true },
-    baddress: { type: String, required: false },
+    baddress: { type: String, required: true },
     baddressh: { type: String, required: false },
     paymentId: { type: Schema.Types.ObjectId, ref: 'Payment', required: false },
     reservationId: { type: Schema.Types.ObjectId, ref: 'Reservation', required: false },
