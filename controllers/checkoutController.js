@@ -32,25 +32,61 @@ const uploadToS3 = async (file) => {
 
 const createBooking = async (req, res) => {
     try {
-        const { 
-            bname, 
-            bphone, 
-            bemail, 
-            bsize, 
-            baddress, 
-            baddressh, 
-            customerDrivers 
+        const {
+            bname,
+            bphone,
+            bemail,
+            bsize,
+            baddress,
+            baddressh,
+            customerDrivers
         } = req.body;
 
-        const parsedCustomerDrivers = JSON.parse(customerDrivers);
+        // Validate required fields
+        if (!bname) return res.status(400).json({ message: 'Name is required' });
+        if (!bphone) return res.status(400).json({ message: 'Phone Number is required' });
+        if (!bemail) return res.status(400).json({ message: 'Email is required' });
+        if (!bsize) return res.status(400).json({ message: 'Size of cart is required' });
+        if (!baddress) return res.status(400).json({ message: 'Home Address is required' });
+
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(bemail)) {
+            return res.status(400).json({ message: 'Invalid email format' });
+        }
+
+        // Parse and validate customerDrivers
+        let parsedCustomerDrivers = [];
+        try {
+            parsedCustomerDrivers = JSON.parse(customerDrivers);
+        } catch (err) {
+            return res.status(400).json({ message: 'Invalid customerDrivers format' });
+        }
+
+        if (!Array.isArray(parsedCustomerDrivers) || parsedCustomerDrivers.length === 0) {
+            return res.status(400).json({ message: 'At least one customer driver is required' });
+        }
 
         const updatedCustomerDrivers = await Promise.all(
             parsedCustomerDrivers.map(async (driver, index) => {
+                const { dphone, demail, dname } = driver;
+
+                if (!dphone) throw new Error(`Driver Phone Number is required for driver ${index + 1}`);
+                if (!demail) throw new Error(`Driver Email is required for driver ${index + 1}`);
+                if (!dname) throw new Error(`Driver Name is required for driver ${index + 1}`);
+
+                // Validate driver email format
+                if (!emailRegex.test(demail)) {
+                    throw new Error(`Invalid email format for driver ${index + 1}`);
+                }
+
+                // Find and upload files
                 const dpolicyFile = req.files.find(file => file.fieldname === `dpolicy[${index}]`);
                 const dlicenseFile = req.files.find(file => file.fieldname === `dlicense[${index}]`);
 
                 if (!dpolicyFile || !dlicenseFile) {
-                    throw new Error(`dpolicy and dlicense are required for driver ${index + 1}`);
+                    throw new Error(`Both dpolicy and dlicense files are required for driver ${index + 1}`);
                 }
 
                 const dpolicyUrl = await uploadToS3(dpolicyFile);
@@ -64,6 +100,7 @@ const createBooking = async (req, res) => {
             })
         );
 
+        // Create booking object
         const booking = new Bookform({
             bname,
             bphone,
@@ -75,6 +112,7 @@ const createBooking = async (req, res) => {
             customerDrivers: updatedCustomerDrivers,
         });
 
+        // Save booking to the database
         const savedBooking = await booking.save();
 
         res.status(201).json({
@@ -84,9 +122,13 @@ const createBooking = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
+        if (error.message.startsWith('Both dpolicy')) {
+            return res.status(400).json({ message: error.message });
+        }
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 };
+
 
 
 
