@@ -34,6 +34,30 @@ const paymentSchema = mongoose.Schema(
             required: false,
             default: false
         },
+        paymentDetails: {
+            paymentMethod: {
+              type: String,
+              required: true,
+            },
+            paymentId: {
+              type: String,
+              required: true,
+            },
+            sessionId: {
+              type: String,
+              required: true,
+            },
+            paymentStatus: {
+              type: String,
+              enum: ["Pending", "Succeeded", "Failed"],
+              default: "Pending",
+            },
+            transactionDetails: {
+              type: Object,
+              default: {},
+            },
+          },
+
 
     }
     , {

@@ -120,11 +120,71 @@ const sendInvoiceWithMail = async (req, res) => {
     }
 };
 
+//complete payment
+
+const completePayment = async (req, res) => {
+    try {
+        const sessionId = req.query.session_id;
+
+        if (!sessionId) {
+            return res.status(400).json({ error: "Session ID is required" });
+        }
+
+        const [session, lineItems] = await Promise.all([
+            stripe.checkout.sessions.retrieve(sessionId, { expand: ['payment_intent.payment_method'] }),
+            stripe.checkout.sessions.listLineItems(sessionId),
+        ]);
+
+        if (!session) {
+            return res.status(404).json({ error: "Payment session not found" });
+        }
+
+        const paymentDetails = {
+            bookingId: session.metadata.bookingId,
+            userId: session.metadata.userId,
+            reservation: session.metadata.reservation,
+        };
+
+        const paymentInfo = {
+            paymentMethod: session.payment_intent?.payment_method_types?.[0] || "Unknown",
+            paymentId: session.payment_intent?.id || "",
+            sessionId: session.id || "",
+            paymentStatus: session.payment_status || "Pending",
+            transactionDetails: session.payment_intent || "",
+        };
+
+        const newPayment = new Payment({
+            userId: paymentDetails.userId,
+            bookingId: paymentDetails.bookingId,
+            reservation: paymentDetails.reservation,
+            paymentDetails: paymentInfo,
+        });
+
+        await newPayment.save();
+
+        res.status(200).json({
+            success: true,
+            status: 200,
+            message: "Payment completed successfully!",
+            data: newPayment,
+        });
+    } catch (error) {
+        console.error("Error in completing the payment:", error.message);
+        res.status(500).json({
+            success: false,
+            status: 500,
+            message: "Internal server error!",
+            error: error.message,
+        });
+    }
+};
+
 
 // Export the handler functions
 module.exports = {
     PaymentInfo,
     getAllPayments,
     generateInvoice,
-    sendInvoiceWithMail
+    sendInvoiceWithMail,
+    completePayment
 };
