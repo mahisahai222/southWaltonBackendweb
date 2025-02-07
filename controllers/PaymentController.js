@@ -6,6 +6,7 @@ const PDFDocument = require('pdfkit');
 const router = express.Router();
 const { sendInvoiceEmail } = require('../middleware/emailService');
 const Reserve = require('../models/reserveModel');
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // Handler function to create and save payment info
 const PaymentInfo = async (req, res) => {
@@ -149,9 +150,10 @@ const completePayment = async (req, res) => {
             paymentMethod: session.payment_intent?.payment_method_types?.[0] || "Unknown",
             paymentId: session.payment_intent?.id || "",
             sessionId: session.id || "",
-            paymentStatus: session.payment_status || "Pending",
+            paymentStatus: session.payment_status === "paid" ? "Paid" : session.payment_status, // Convert to match schema
             transactionDetails: session.payment_intent || "",
         };
+        
 
         const newPayment = new Payment({
             userId: paymentDetails.userId,
@@ -178,6 +180,7 @@ const completePayment = async (req, res) => {
         });
     }
 };
+
 
 
 // Export the handler functions
