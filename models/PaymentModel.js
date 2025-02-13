@@ -35,17 +35,21 @@ const paymentSchema = mongoose.Schema(
             default: false
         },
         paymentDetails: {
-          paymentMethod: { type: String, required: true },
-          paymentId: { type: String, required: true },
-          sessionId: { type: String, required: true },
-          paymentStatus: {
-            type: String,
-            enum: ["Pending", "Paid", "Failed"], // Ensure "Paid" is included
-            required: true,
-          },
-          transactionDetails: { type: Object },
+            paymentMethod: { type: String, required: true },
+            paymentId: { type: String, required: true },
+            sessionId: { type: String, required: true },
+            paymentStatus: {
+                type: String,
+                enum: ["Pending", "Paid", "Failed"], // Ensure "Paid" is included
+                required: true,
+            },
+            transactionDetails: { type: Object },
         },
-
+        paymentType: {
+            type: String,
+            enum: ["Reservation", "Damage", "Balance"],
+            required: false,
+        },
     }
     , {
         timestamps: true

@@ -7,17 +7,19 @@ const router = express.Router();
 const { sendInvoiceEmail } = require('../middleware/emailService');
 const Reserve = require('../models/reserveModel');
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { recordPayment,createInvoice } = require('../middleware/freshbooksService');
+const nodemailer = require('nodemailer');
 
 // Handler function to create and save payment info
 const PaymentInfo = async (req, res) => {
     try {
-        
+
         const createPayment = new Payment(req.body);
         const savedPayment = await createPayment.save();
         const updatedReservation = await Reserve.findByIdAndUpdate(
-            req.body.reservation, 
-            { accepted: true },  
-            { new: true }        
+            req.body.reservation,
+            { accepted: true },
+            { new: true }
         );
 
         if (!updatedReservation) {
@@ -140,29 +142,67 @@ const completePayment = async (req, res) => {
             return res.status(404).json({ error: "Payment session not found" });
         }
 
+        // Check if payment with the same session ID already exists
+        const existingPayment = await Payment.findOne({ 'paymentDetails.sessionId': sessionId });
+        if (existingPayment) {
+            return res.status(200).json({
+                success: true,
+                status: 200,
+                message: "Payment already processed.",
+                data: existingPayment,
+            });
+        }
+
         const paymentDetails = {
             bookingId: session.metadata.bookingId,
             userId: session.metadata.userId,
             reservation: session.metadata.reservation,
+            fromAdmin: session.metadata.fromAdmin,
+            paymentType: session.metadata.paymentType
         };
 
         const paymentInfo = {
             paymentMethod: session.payment_intent?.payment_method_types?.[0] || "Unknown",
             paymentId: session.payment_intent?.id || "",
             sessionId: session.id || "",
-            paymentStatus: session.payment_status === "paid" ? "Paid" : session.payment_status, // Convert to match schema
+            paymentStatus: session.payment_status === "paid" ? "Paid" : session.payment_status,
             transactionDetails: session.payment_intent || "",
+            amount: session.amount_total / 100 || 0, // Convert amount to dollars (Stripe stores in cents)
         };
-        
+        const customerEmail =
+            session.customer_email ||
+            session.payment_intent?.payment_method?.billing_details?.email ||
+            null;
 
+        if (!customerEmail) {
+            return res.status(400).json({ error: "Customer email is missing in the payment session." });
+        }
+
+        // Save payment information to the database
         const newPayment = new Payment({
             userId: paymentDetails.userId,
             bookingId: paymentDetails.bookingId,
             reservation: paymentDetails.reservation,
+            fromAdmin: paymentDetails.fromAdmin,
+            paymentType: paymentDetails.paymentType,
             paymentDetails: paymentInfo,
         });
 
         await newPayment.save();
+
+
+        // Step 1: Create Invoice in FreshBooks
+        const invoiceResponse = await createInvoice(customerEmail, paymentInfo.amount);
+
+        if (!invoiceResponse) {
+            throw new Error("Failed to create invoice in FreshBooks.");
+        }
+
+
+        // Step 2: Record Payment in FreshBooks
+        await recordPayment(customerEmail, paymentInfo.amount);
+
+        await sendPaymentConfirmationEmail(customerEmail, paymentInfo);
 
         res.status(200).json({
             success: true,
@@ -180,6 +220,44 @@ const completePayment = async (req, res) => {
         });
     }
 };
+
+const sendPaymentConfirmationEmail = async (email, paymentInfo) => {
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail', 
+            auth: {
+              user: "development.aayaninfotech@gmail.com", 
+              pass: "defe qhhm kgmu ztkf", 
+            },
+        });
+
+        const mailOptions = {
+            from: "development.aayaninfotech@gmail.com", // Sender address
+            to: email, // Receiver email
+            subject: "Reservation Payment Confirmation", // Subject line
+            html: `
+                <h1>Reservation Payment Confirmation</h1>
+                <p>Dear Customer,</p>
+                <p>Thank you for your payment. Here are the details:</p>
+                <ul>
+                    <li><strong>Amount:</strong> $${paymentInfo.amount}</li>
+                    <li><strong>Payment ID:</strong> ${paymentInfo.paymentId}</li>
+                    <li><strong>Payment Status:</strong> ${paymentInfo.paymentStatus}</li>
+                </ul>
+                <p>If you have any questions, feel free to contact us.</p>
+                <p>Best regards,</p>
+                <p>South Walton Carts</p>
+            `,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+       
+    } catch (error) {
+        console.error("Error sending email:", error.message);
+        throw new Error("Failed to send payment confirmation email.");
+    }
+};
+
 
 
 
