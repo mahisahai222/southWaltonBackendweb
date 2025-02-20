@@ -9,6 +9,9 @@ const Reserve = require('../models/reserveModel');
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { recordPayment,createInvoice } = require('../middleware/freshbooksService');
 const nodemailer = require('nodemailer');
+const stripeService = require("./paymentGatewayController");
+const emailService = require("../middleware/emailService");
+
 
 // Handler function to create and save payment info
 const PaymentInfo = async (req, res) => {
@@ -259,6 +262,29 @@ const sendPaymentConfirmationEmail = async (email, paymentInfo) => {
 };
 
 
+//Mail for Damage Deposit and Balance
+
+const sendPaymentLinksInAdvance = async (req, res) => {
+    try {
+        const { userId, bookingId, totalAmount, userEmail } = req.body;
+
+        // Generate Damage Deposit payment session
+        const damageSession = await stripeService.createDamageDepositSession(userId, bookingId);
+        const damageSessionUrl = damageSession.url;
+
+        // Generate Balance Payment session
+        const balanceSession = await stripeService.createBalancePaymentSession(userId, bookingId, totalAmount);
+        const balanceSessionUrl = balanceSession.url;
+
+        // Send email with payment links
+        await emailService.sendPaymentEmail(userEmail, damageSessionUrl, balanceSessionUrl);
+
+        res.status(200).json({ message: "Payment links sent via email successfully." });
+    } catch (error) {
+        console.error("Error in sending payment links:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
 
 
 // Export the handler functions
@@ -267,5 +293,6 @@ module.exports = {
     getAllPayments,
     generateInvoice,
     sendInvoiceWithMail,
-    completePayment
+    completePayment,
+    sendPaymentLinksInAdvance
 };
