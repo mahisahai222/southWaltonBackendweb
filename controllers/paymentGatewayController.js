@@ -38,7 +38,7 @@ const createCheckoutSession = async (req, res) => {
                 paymentType
             },
         });
-console.log(session)
+
         res.status(200).json({ session });
     } catch (error) {
         console.error("Error creating checkout session:", error);
