@@ -28,8 +28,8 @@ const createCheckoutSession = async (req, res) => {
                 },
             ],
             mode: "payment",
-            success_url: `http://44.196.64.110:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: "http://44.196.64.110:8133/cancel",
+            success_url: `http://54.236.98.193:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: "http://54.236.98.193:8133/cancel",
             metadata: {
                 userId,
                 bookingId,
@@ -48,8 +48,10 @@ const createCheckoutSession = async (req, res) => {
 
 // For Damage Deposit Price ($250)
 
-const createDamageDepositSession = async (userId, bookingId) => {
+const createDamageDepositSession = async (userId, reservation) => {
     const amountInDollars = 250; // Fixed amount for Damage Deposit
+    const tax = (amountInDollars * 7) / 100;
+    const balanceAmount = amountInDollars + tax ;
 
     const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
@@ -58,17 +60,17 @@ const createDamageDepositSession = async (userId, bookingId) => {
                 price_data: {
                     currency: "usd",
                     product_data: { name: "Damage Deposit" },
-                    unit_amount: amountInDollars * 100,
+                    unit_amount: balanceAmount * 100,
                 },
                 quantity: 1,
             },
         ],
         mode: "payment",
-        success_url: `http://44.196.64.110:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `http://44.196.64.110:8133/cancel`,
+        success_url: `http://54.236.98.193:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `http://54.236.98.193:8133/cancel`,
         metadata: {
             userId,
-            bookingId,
+            reservation,
             paymentType: "Damage",
         },
     });
@@ -79,14 +81,13 @@ const createDamageDepositSession = async (userId, bookingId) => {
 //For Balance Amount include Tax,online fee and exclude Reservation 
 
 
-const createBalancePaymentSession = async (userId, bookingId, totalAmount) => {
+const createBalancePaymentSession = async (userId, reservation, totalAmount) => {
     const reservationAmount = 100; // Fixed Reservation Amount
-    const damageDeposit = 250; // Fixed Damage Deposit
 
     // Calculate balance payment
-    const remainingAmount = totalAmount - reservationAmount - damageDeposit;
-    const tax = (remainingAmount * 7) / 100;
-    const convenienceFee = (remainingAmount * 5) / 100;
+    const remainingAmount = totalAmount - reservationAmount;
+    const tax = (totalAmount * 7) / 100;
+    const convenienceFee = (totalAmount * 5) / 100;
     const balanceAmount = remainingAmount + tax + convenienceFee;
 
     const session = await stripe.checkout.sessions.create({
@@ -102,11 +103,11 @@ const createBalancePaymentSession = async (userId, bookingId, totalAmount) => {
             },
         ],
         mode: "payment",
-        success_url: `http://44.196.64.110:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `http://44.196.64.110:8133/cancel`,
+        success_url: `http://54.236.98.193:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `http://54.236.98.193:8133/cancel`,
         metadata: {
             userId,
-            bookingId,
+            reservation,
             paymentType: "Balance",
         },
     });
