@@ -50,6 +50,15 @@ const paymentSchema = mongoose.Schema(
             enum: ["Reservation", "Damage", "Balance"],
             required: false,
         },
+        mailSent: {
+            type: Boolean,
+            required: false,
+            default: false
+        },
+        totalAmount: {
+            type: String,
+            require: false
+        },    //total amount for vehicle
     }
     , {
         timestamps: true

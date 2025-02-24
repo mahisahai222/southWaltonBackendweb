@@ -161,7 +161,8 @@ const completePayment = async (req, res) => {
             userId: session.metadata.userId,
             reservation: session.metadata.reservation,
             fromAdmin: session.metadata.fromAdmin,
-            paymentType: session.metadata.paymentType
+            paymentType: session.metadata.paymentType,
+            amount: session.metadata.amountInDollars
         };
 
         const paymentInfo = {
@@ -188,6 +189,7 @@ const completePayment = async (req, res) => {
             reservation: paymentDetails.reservation,
             fromAdmin: paymentDetails.fromAdmin,
             paymentType: paymentDetails.paymentType,
+            amount: paymentDetails.amount,
             paymentDetails: paymentInfo,
         });
 
@@ -343,14 +345,14 @@ const sendPaymentConfirmationEmail = async (email, paymentInfo) => {
 
 const sendPaymentLinksInAdvance = async (req, res) => {
     try {
-        const { userId, bookingId, totalAmount, userEmail } = req.body;
+        const { userId, reservation, totalAmount, userEmail } = req.body;
 
         // Generate Damage Deposit payment session
-        const damageSession = await stripeService.createDamageDepositSession(userId, bookingId);
+        const damageSession = await stripeService.createDamageDepositSession(userId, reservation);
         const damageSessionUrl = damageSession.url;
 
         // Generate Balance Payment session
-        const balanceSession = await stripeService.createBalancePaymentSession(userId, bookingId, totalAmount);
+        const balanceSession = await stripeService.createBalancePaymentSession(userId, reservation, totalAmount);
         const balanceSessionUrl = balanceSession.url;
 
         // Send email with payment links

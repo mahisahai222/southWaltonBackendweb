@@ -35,7 +35,8 @@ const createCheckoutSession = async (req, res) => {
                 bookingId,
                 reservation,
                 fromAdmin,
-                paymentType
+                paymentType,
+                amountInDollars
             },
         });
 
