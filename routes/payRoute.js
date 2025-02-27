@@ -8,8 +8,5 @@ router.get('/pay', getAllPayments);
 router.get('/invoice/:paymentId', generateInvoice);
 router.post('/send-invoice/:paymentId', sendInvoiceWithMail);
 router.get('/complete-payment', completePayment);
-// deposite and Balance
-router.post("/send-payment-links", sendPaymentLinksInAdvance);
-
 
 module.exports = router;

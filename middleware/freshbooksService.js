@@ -1,4 +1,5 @@
 const axios = require('axios');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Initialize Stripe
 
 
 const getFreshBooksHeaders = async () => {
@@ -9,10 +10,84 @@ const getFreshBooksHeaders = async () => {
       "Content-Type": "application/json",
     };
   };
-  
 
-const createInvoice = async (email, amount) => {
+// payment link for Damage and Balance
+
+const createStripePaymentLink = async (amount, email, paymentType,userId, bookingId,reservation,fromAdmin ) => {
     try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: "usd",
+                        product_data: {
+                            name: 'Invoice Payment',
+                            description: `Payment for Invoice`,
+                        },
+                        unit_amount: Math.round(amount * 100), // Amount in smallest currency unit (e.g., cents for USD)
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            customer_email: email, // Pre-fill email in Stripe checkout
+            success_url: `http://54.236.98.193:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `http://54.236.98.193:8133/cancel`,
+            metadata: {
+                amount, email, paymentType,userId, bookingId,reservation,fromAdmin
+            },
+        });
+
+        return session.url;
+    } catch (error) {
+        console.error('Error creating Stripe payment link:', error.message);
+        throw new Error('Failed to create payment link.');
+    }
+};
+
+
+// Function to send invoice by email
+const sendInvoiceByEmail = async (invoiceId, recipients, subject, body, includePdf = false) => {
+    try {
+        const headers = await getFreshBooksHeaders();
+
+        const emailData = {
+            invoice: {
+                action_email: true,
+                email_recipients: recipients,
+                email_include_pdf: includePdf,
+                invoice_customized_email: {
+                    subject,
+                    body,
+                },
+            },
+        };
+
+        const response = await axios.put(
+            `https://api.freshbooks.com/accounting/account/${process.env.FRESHBOOKS_ACCOUNT_ID}/invoices/invoices/${invoiceId}`,
+            emailData,
+            { headers }
+        );
+
+        console.log('Invoice email sent successfully:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error sending invoice email:', error.response?.data || error.message);
+        throw new Error(error.response?.data?.message || error.message);
+    }
+};
+
+const createInvoice = async (email, amount, paymentType,userId, bookingId,reservation,fromAdmin ) => {
+    try {
+        console.log("In service:", email, amount, paymentType,userId, bookingId,reservation,fromAdmin );
+    
+        // Convert amount to a number
+        const numericAmount = parseFloat(amount);
+        if (isNaN(numericAmount)) {
+            throw new Error(`Invalid amount value: ${amount}`);
+        }
+      
         const clientId = await getClientId(email);
 
         if (!clientId) {
@@ -21,16 +96,52 @@ const createInvoice = async (email, amount) => {
 
         const headers = await getFreshBooksHeaders();
 
+        // Define tax rates
+        const floridaTaxRate = 0.07; // 7%
+        const convenienceFeeRate = 0.05; // 5%
+        const damageDepositBase = 250;
+
+        // Calculate amounts
+        const floridaTaxOnDamageDeposit = damageDepositBase * floridaTaxRate;
+        const damageDeposit = damageDepositBase + floridaTaxOnDamageDeposit;
+
+        const floridaTaxOnBalance = numericAmount * floridaTaxRate;
+        const convenienceFee = numericAmount * convenienceFeeRate;
+        const balanceAmount = numericAmount + floridaTaxOnBalance + convenienceFee;
+
+        // Ensure all numeric values are correct before using `.toFixed()`
+        const lines = [];
+
+        if (paymentType === "Reservation") {
+            lines.push({
+                name: 'Reservation Price',
+                description: 'Flat reservation fee',
+                qty: 1,
+                unit_cost: { amount: 100, currency: 'USD' }, // Fixed $100 reservation price
+            });
+        } else if (paymentType === "Final") {
+            // Add Damage Deposit and Balance Amount lines
+            lines.push(
+                {
+                    name: 'Damage Deposit',
+                    description: `Base Amount: $${damageDepositBase.toFixed(2)}, Florida Tax (7%): $${floridaTaxOnDamageDeposit.toFixed(2)}`,
+                    qty: 1,
+                    unit_cost: { amount: damageDeposit, currency: 'USD' },
+                },
+                {
+                    name: 'Balance Amount',
+                    description: `Base Amount: $${numericAmount.toFixed(2)}, Florida Tax (7%): $${floridaTaxOnBalance.toFixed(2)}, Online Convenience Fee (5%): $${convenienceFee.toFixed(2)}`,
+                    qty: 1,
+                    unit_cost: { amount: balanceAmount, currency: 'USD' },
+                }
+            );
+        }
+
+        // Create invoice data
         const invoiceData = {
             customerid: clientId,
             create_date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD
-            lines: [
-                {
-                    name: 'SWE',
-                    qty: 1,
-                    unit_cost: { amount, currency: 'USD' },
-                },
-            ],
+            lines,
         };
 
         const response = await axios.post(
@@ -39,12 +150,32 @@ const createInvoice = async (email, amount) => {
             { headers }
         );
 
+        const invoiceId = response.data.response.result.invoice.id;
+        console.log('Invoice created successfully:', invoiceId);
+
+        // Handle email and payment link based on paymentType
+        const recipients = [email];
+        let subject = 'Your Invoice';
+        let body = `Thank you for your business. Attached is your invoice.`;
+
+        if (paymentType === "Final") {
+            const totalAmount = damageDeposit + balanceAmount;
+            const paymentLink = await createStripePaymentLink(totalAmount, email,paymentType,userId, bookingId,reservation,fromAdmin  );
+            subject = 'Your Invoice with Payment Link';
+            body += ` You can make a payment here: ${paymentLink}`;
+        }
+
+        // Send the invoice email
+        await sendInvoiceByEmail(invoiceId, recipients, subject, body, true);
+
         return response.data;
     } catch (error) {
         console.error('Error creating invoice:', error.response?.data || error.message);
         throw new Error(error.response?.data?.message || error.message);
     }
 };
+
+
 
 
 

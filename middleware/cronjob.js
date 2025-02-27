@@ -4,9 +4,10 @@ const Reservation = require('../models/reserveModel'); // Update path as needed
 const emailService = require('./emailService'); // Update path as needed
 const stripeService = require("../controllers/paymentGatewayController");
 const mongoose = require('mongoose');
+const { createInvoice } = require('../middleware/freshbooksService');
 
 // Cron job to run daily at midnight
-cron.schedule('0 0 * * *', async () => {
+cron.schedule('* * * * *', async () => {
     console.log('Cron job started:', new Date());
     try {
         const today = new Date();
@@ -16,22 +17,19 @@ cron.schedule('0 0 * * *', async () => {
         const endDateUTC = new Date(todayUTC);
         endDateUTC.setDate(todayUTC.getDate() + 21); // 21 days from today
 
-        console.log('Today UTC:', todayUTC);
-        console.log('Target Date Range:', { from: targetDateUTC, to: endDateUTC });
-
+    
         const payments = await Payment.find({
             paymentType: 'Reservation',
             mailSent: false,
         });
-        console.log('Payments:', payments);
+      
 
         const reservationIds = payments.map(payment =>
             mongoose.Types.ObjectId.isValid(payment.reservation) ? new mongoose.Types.ObjectId(payment.reservation) : null
         ).filter(Boolean);
-        console.log('Validated Reservation IDs:', reservationIds);
-
+       
         const allReservations = await Reservation.find({ _id: { $in: reservationIds } });
-        console.log('All Reservations:', allReservations);
+    
 
         const reservations = await Reservation.find({
             _id: { $in: reservationIds },
@@ -40,7 +38,7 @@ cron.schedule('0 0 * * *', async () => {
                 $lte: endDateUTC,    // 21 days from today
             },
         });
-        console.log('Matching Reservations:', reservations);
+       
 
         for (const payment of payments) {
             const reservation = reservations.find(res => res._id.toString() === payment.reservation);
@@ -50,18 +48,11 @@ cron.schedule('0 0 * * *', async () => {
             const pickDate = new Date(reservation.pickdate);
             const diffInDays = Math.ceil((pickDate - todayUTC) / (1000 * 60 * 60 * 24));
 
-            console.log('Pick Date:', pickDate);
-            console.log('Today UTC:', todayUTC);
-            console.log('Difference in Days:', diffInDays);
+
             const email = payment.paymentDetails.transactionDetails.payment_method.billing_details.email
             if (diffInDays <= 21) {
-                const damageSession = await stripeService.createDamageDepositSession(payment.userId, payment.reservation);
-                const damageSessionUrl = damageSession.url;
-                console.log("payment",payment.amount)
-                const balanceSession = await stripeService.createBalancePaymentSession(payment.userId, payment.reservation, payment.amount);
-                const balanceSessionUrl = balanceSession.url;
-
-                await emailService.sendPaymentEmail(email, damageSessionUrl, balanceSessionUrl);
+                console.log(email,reservation.reserveAmount, 'Final')
+                await createInvoice(email, reservation.reserveAmount, 'Final', payment.userId, payment.bookingId, payment.reservation, payment.fromAdmin);
                 payment.mailSent = true;
                 await payment.save();
             }
