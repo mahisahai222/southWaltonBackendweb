@@ -11,8 +11,8 @@ const createCheckoutSession = async (req, res) => {
     try {
         const { amountInDollars, userId, bookingId, reservation, fromAdmin, paymentType } = req.body;
 
-        if (!amountInDollars || !userId  || !reservation || !fromAdmin || !paymentType) {
-            return res.status(400).json({ error: "All fields (amount, userId, reservation,fromAdmin,paymentType) are required" });
+        if (!amountInDollars || !reservation || !fromAdmin || !paymentType) {
+            return res.status(400).json({ error: "All fields (amountInDollars, reservation,fromAdmin,paymentType) are required" });
         }
 
         const session = await stripe.checkout.sessions.create({
