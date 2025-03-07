@@ -49,7 +49,6 @@ const createBooking = async (req, res) => {
         if (!bsize) return res.status(400).json({ message: 'Size of cart is required' });
         if (!baddress) return res.status(400).json({ message: 'Home Address is required' });
 
-
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(bemail)) {
@@ -68,37 +67,38 @@ const createBooking = async (req, res) => {
             return res.status(400).json({ message: 'At least one customer driver is required' });
         }
 
-        const updatedCustomerDrivers = await Promise.all(
-            parsedCustomerDrivers.map(async (driver, index) => {
-                const { dphone, demail, dname } = driver;
+        const updatedCustomerDrivers = [];
+        for (let index = 0; index < parsedCustomerDrivers.length; index++) {
+            const driver = parsedCustomerDrivers[index];
+            const { dphone, demail, dname } = driver;
 
-                if (!dphone) throw new Error(`Driver Phone Number is required for driver ${index + 1}`);
-                if (!demail) throw new Error(`Driver Email is required for driver ${index + 1}`);
-                if (!dname) throw new Error(`Driver Name is required for driver ${index + 1}`);
+            // Validate required fields for each driver
+            if (!dphone) return res.status(400).json({ message: `Driver Phone Number is required for driver ${index + 1}` });
+            if (!demail) return res.status(400).json({ message: `Driver Email is required for driver ${index + 1}` });
+            if (!dname) return res.status(400).json({ message: `Driver Name is required for driver ${index + 1}` });
 
-                // Validate driver email format
-                if (!emailRegex.test(demail)) {
-                    throw new Error(`Invalid email format for driver ${index + 1}`);
-                }
+            // Validate driver email format
+            if (!emailRegex.test(demail)) {
+                return res.status(400).json({ message: `Invalid email format for driver ${index + 1}` });
+            }
 
-                // Find and upload files
-                const dpolicyFile = req.files.find(file => file.fieldname === `dpolicy[${index}]`);
-                const dlicenseFile = req.files.find(file => file.fieldname === `dlicense[${index}]`);
+            // Find and upload files
+            const dpolicyFile = req.files.find(file => file.fieldname === `dpolicy[${index}]`);
+            const dlicenseFile = req.files.find(file => file.fieldname === `dlicense[${index}]`);
 
-                if (!dpolicyFile || !dlicenseFile) {
-                    throw new Error(`Both dpolicy and dlicense files are required for driver ${index + 1}`);
-                }
+            if (!dpolicyFile || !dlicenseFile) {
+                return res.status(400).json({ message: `Both dpolicy and dlicense files are required for driver ${index + 1}` });
+            }
 
-                const dpolicyUrl = await uploadToS3(dpolicyFile);
-                const dlicenseUrl = await uploadToS3(dlicenseFile);
+            const dpolicyUrl = await uploadToS3(dpolicyFile);
+            const dlicenseUrl = await uploadToS3(dlicenseFile);
 
-                return {
-                    ...driver,
-                    dpolicy: dpolicyUrl,
-                    dlicense: dlicenseUrl,
-                };
-            })
-        );
+            updatedCustomerDrivers.push({
+                ...driver,
+                dpolicy: dpolicyUrl,
+                dlicense: dlicenseUrl,
+            });
+        }
 
         // Create booking object
         const booking = new Bookform({
@@ -122,12 +122,10 @@ const createBooking = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        if (error.message.startsWith('Both dpolicy')) {
-            return res.status(400).json({ message: error.message });
-        }
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 };
+
 
 
 
@@ -149,9 +147,9 @@ const bookingHistoryByUserId = async (req, res, next) => {
 
                 const reservationDetails = payment.reservation
                     ? await Reservation.findOne(
-                          { _id: payment.reservation },
-                          'pickdate dropdate days pickup drop vehicleId'
-                      )
+                        { _id: payment.reservation },
+                        'pickdate dropdate days pickup drop vehicleId'
+                    )
                     : null;
 
                 let vehicleDetails = null;
@@ -167,9 +165,9 @@ const bookingHistoryByUserId = async (req, res, next) => {
                     bookingDetails,
                     reservationDetails: reservationDetails
                         ? {
-                              ...reservationDetails._doc,
-                              vehicleDetails,
-                          }
+                            ...reservationDetails._doc,
+                            vehicleDetails,
+                        }
                         : null,
                 };
             })
