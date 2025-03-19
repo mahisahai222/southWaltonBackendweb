@@ -148,7 +148,7 @@ const createInvoice = async (email, amount, paymentType, userId, bookingId, rese
         console.log('Invoice created successfully:', invoiceId);
 
         const recipients = [email];
-        let subject = 'Your Invoice';
+        let subject = 'Your Reservation Invoice Details';
         let body = `Thank you for your business. Attached is your invoice.`;
 
         // Declare paymentLink outside of the 'if' block
@@ -157,7 +157,7 @@ const createInvoice = async (email, amount, paymentType, userId, bookingId, rese
         if (paymentType === "Final") {
             amount = damageDeposit + balanceAmount;
             paymentLink = await createStripePaymentLink(amount, email, paymentType, userId, bookingId, reservation, fromAdmin);
-            subject = 'Your Invoice with Payment Link';
+            subject = 'Your Damage Deposit and Vehicle Invoice with Payment Link';
             body += ` You can make a payment here: ${paymentLink}`;
         }
         console.log(paymentLink); // Now this will work without error
