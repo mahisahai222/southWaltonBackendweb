@@ -32,8 +32,8 @@ const createStripePaymentLink = async (amount, email, paymentType,userId, bookin
             ],
             mode: 'payment',
             customer_email: email, // Pre-fill email in Stripe checkout
-            success_url: `http://54.236.98.193:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `http://54.236.98.193:8133/cancel`,
+            success_url: `http://3.223.253.106:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `http://3.223.253.106:8133/cancel`,
             metadata: {
                 amount, email, paymentType,userId, bookingId,reservation,fromAdmin
             },
@@ -78,16 +78,15 @@ const sendInvoiceByEmail = async (invoiceId, recipients, subject, body, includeP
     }
 };
 
-const createInvoice = async (email, amount, paymentType,userId, bookingId,reservation,fromAdmin ) => {
+const createInvoice = async (email, amount, paymentType, userId, bookingId, reservation, fromAdmin) => {
     try {
-        console.log("In service:", email, amount, paymentType,userId, bookingId,reservation,fromAdmin );
-    
-        // Convert amount to a number
+        console.log("In service:", email, amount, paymentType, userId, bookingId, reservation, fromAdmin);
+
         const numericAmount = parseFloat(amount);
         if (isNaN(numericAmount)) {
             throw new Error(`Invalid amount value: ${amount}`);
         }
-      
+
         const clientId = await getClientId(email);
 
         if (!clientId) {
@@ -96,12 +95,10 @@ const createInvoice = async (email, amount, paymentType,userId, bookingId,reserv
 
         const headers = await getFreshBooksHeaders();
 
-        // Define tax rates
         const floridaTaxRate = 0.07; // 7%
         const convenienceFeeRate = 0.05; // 5%
         const damageDepositBase = 250;
 
-        // Calculate amounts
         const floridaTaxOnDamageDeposit = damageDepositBase * floridaTaxRate;
         const damageDeposit = damageDepositBase + floridaTaxOnDamageDeposit;
 
@@ -109,7 +106,6 @@ const createInvoice = async (email, amount, paymentType,userId, bookingId,reserv
         const convenienceFee = numericAmount * convenienceFeeRate;
         const balanceAmount = numericAmount + floridaTaxOnBalance + convenienceFee;
 
-        // Ensure all numeric values are correct before using `.toFixed()`
         const lines = [];
 
         if (paymentType === "Reservation") {
@@ -117,10 +113,9 @@ const createInvoice = async (email, amount, paymentType,userId, bookingId,reserv
                 name: 'Reservation Price',
                 description: 'Flat reservation fee',
                 qty: 1,
-                unit_cost: { amount: 100, currency: 'USD' }, // Fixed $100 reservation price
+                unit_cost: { amount: 100, currency: 'USD' },
             });
         } else if (paymentType === "Final") {
-            // Add Damage Deposit and Balance Amount lines
             lines.push(
                 {
                     name: 'Damage Deposit',
@@ -137,10 +132,9 @@ const createInvoice = async (email, amount, paymentType,userId, bookingId,reserv
             );
         }
 
-        // Create invoice data
         const invoiceData = {
             customerid: clientId,
-            create_date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD
+            create_date: new Date().toISOString().split('T')[0],
             lines,
         };
 
@@ -153,19 +147,21 @@ const createInvoice = async (email, amount, paymentType,userId, bookingId,reserv
         const invoiceId = response.data.response.result.invoice.id;
         console.log('Invoice created successfully:', invoiceId);
 
-        // Handle email and payment link based on paymentType
         const recipients = [email];
         let subject = 'Your Invoice';
         let body = `Thank you for your business. Attached is your invoice.`;
 
+        // Declare paymentLink outside of the 'if' block
+        let paymentLink = null;
+
         if (paymentType === "Final") {
-            const totalAmount = damageDeposit + balanceAmount;
-            const paymentLink = await createStripePaymentLink(totalAmount, email,paymentType,userId, bookingId,reservation,fromAdmin  );
+            amount = damageDeposit + balanceAmount;
+            paymentLink = await createStripePaymentLink(amount, email, paymentType, userId, bookingId, reservation, fromAdmin);
             subject = 'Your Invoice with Payment Link';
             body += ` You can make a payment here: ${paymentLink}`;
         }
+        console.log(paymentLink); // Now this will work without error
 
-        // Send the invoice email
         await sendInvoiceByEmail(invoiceId, recipients, subject, body, true);
 
         return response.data;
@@ -174,6 +170,7 @@ const createInvoice = async (email, amount, paymentType,userId, bookingId,reserv
         throw new Error(error.response?.data?.message || error.message);
     }
 };
+
 
 
 
