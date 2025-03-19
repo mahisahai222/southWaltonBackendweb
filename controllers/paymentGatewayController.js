@@ -11,8 +11,8 @@ const createCheckoutSession = async (req, res) => {
     try {
         const { amountInDollars, userId, bookingId, reservation, fromAdmin, paymentType } = req.body;
 
-        if (!amountInDollars || !userId  || !reservation || !fromAdmin || !paymentType) {
-            return res.status(400).json({ error: "All fields (amount, userId, reservation,fromAdmin,paymentType) are required" });
+        if (!amountInDollars || !reservation || !fromAdmin || !paymentType) {
+            return res.status(400).json({ error: "All fields (amountInDollars, reservation,fromAdmin,paymentType) are required" });
         }
 
         const session = await stripe.checkout.sessions.create({
@@ -28,8 +28,8 @@ const createCheckoutSession = async (req, res) => {
                 },
             ],
             mode: "payment",
-            success_url: `http://54.236.98.193:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: "http://54.236.98.193:8133/cancel",
+            success_url: `http://3.223.253.106:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: "http://3.223.253.106:8133/cancel",
             metadata: {
                 userId,
                 bookingId,
