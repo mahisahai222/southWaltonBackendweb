@@ -1,18 +1,5 @@
-
-// const express = require('express');
-// const router = express.Router();
-// const signController = require('../controllers/signController');
-
-// router.post('/save', signController.saveSignature);
-// router.get('/:userId', signController.getSignature);
-// router.get('/', signController.getAllSignatures); //getAll
-// router.delete(':userId', signController.deleteSignature);
-// router.get('/image/:userId', signController.getSignatureImage);
-
-
-// module.exports = router;
 const express = require('express');
-const { saveImageUrl ,getImageByUserId ,updateSign,getAllImages } = require('../controllers/signController');
+const { saveImageUrl ,getImageByUserId ,updateSign,getAllImages,sendRentalAgreementEmail } = require('../controllers/signController');
 const multer = require('multer');
 
 const router = express.Router();
@@ -23,4 +10,9 @@ router.post('/save', saveImageUrl); // 'image' is the key for the file input
 router.put('/update-pdf', updateSign);
 router.get('/get-pdf/:userId', getImageByUserId);
 router.get('/get-sign', getAllImages);
+
+//after signed agreement
+
+router.post('/send', sendRentalAgreementEmail);
+
 module.exports = router;

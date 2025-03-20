@@ -3,6 +3,9 @@ const Image = require('../models/signModel');
 const upload = require('../middleware/multer');
 const { S3 } = require('@aws-sdk/client-s3');
 
+const nodemailer = require('nodemailer');
+const User = require('../models/userModel');
+
 const s3 = new S3({
     credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -161,4 +164,50 @@ exports.getAllImages = async (req, res) => {
             details: error.message,
         });
     }
+};
+
+
+// email of agreement sign 
+
+
+exports.sendRentalAgreementEmail = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Fetch user from the database
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Create nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'development.aayaninfotech@gmail.com', 
+        pass: 'defe qhhm kgmu ztkf',
+      },
+    });
+
+    // Email content
+    const mailOptions = {
+      from: 'development.aayaninfotech@gmail.com',
+      to: user.email,
+      subject: 'Rental Agreement Signed Successfully',
+      html: `
+        <h3>Dear ${user.fullName},</h3>
+        <p>We are pleased to inform you that you have successfully signed the rental agreement with <b>South Walton Carts</b>.</p>
+        <p>Thank you for choosing our services!</p>
+        <p>Best regards,<br>South Walton Carts Team</p>
+      `,
+    };
+
+    // Send email
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: 'Email sent successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error sending email', error });
+  }
 };
