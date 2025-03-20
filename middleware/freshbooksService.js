@@ -109,11 +109,16 @@ const createInvoice = async (email, amount, paymentType, userId, bookingId, rese
         const lines = [];
 
         if (paymentType === "Reservation") {
+            const reservationBase = 100;
+            const floridaTaxOnReservation = reservationBase * floridaTaxRate;
+            const convenienceFeeOnReservation = reservationBase * convenienceFeeRate;
+            const totalReservationAmount = reservationBase + floridaTaxOnReservation + convenienceFeeOnReservation;
+
             lines.push({
-                name: 'Reservation Price',
-                description: 'Flat reservation fee',
+                name: 'Reservation Fee',
+                description: `Base Amount: $${reservationBase.toFixed(2)}, Florida Tax (7%): $${floridaTaxOnReservation.toFixed(2)}, Convenience Fee (5%): $${convenienceFeeOnReservation.toFixed(2)}`,
                 qty: 1,
-                unit_cost: { amount: 100, currency: 'USD' },
+                unit_cost: { amount: totalReservationAmount, currency: 'USD' },
             });
         } else if (paymentType === "Final") {
             lines.push(
