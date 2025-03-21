@@ -145,7 +145,6 @@ const completePayment = async (req, res) => {
             return res.status(404).json({ error: "Payment session not found" });
         }
 
-        // Check if payment with the same session ID already exists
         const existingPayment = await Payment.findOne({ 'paymentDetails.sessionId': sessionId });
         if (existingPayment) {
             return res.status(200).json({
@@ -182,7 +181,6 @@ const completePayment = async (req, res) => {
             return res.status(400).json({ error: "Customer email is missing in the payment session." });
         }
 
-        // Save payment information to the database
         const newPayment = new Payment({
             userId: paymentDetails.userId,
             bookingId: paymentDetails.bookingId,
@@ -195,22 +193,30 @@ const completePayment = async (req, res) => {
 
         await newPayment.save();
 
-        if (paymentDetails.paymentType == "Reservation") {
-            // Step 1: Create Invoice in FreshBooks
-            const invoiceResponse = await createInvoice(customerEmail, paymentInfo.amount, paymentDetails.paymentType, paymentDetails.userId, paymentDetails.bookingId, paymentDetails.reservation, paymentDetails.fromAdmin);
+        if (paymentDetails.paymentType === "Reservation") {
+            const invoiceResponse = await createInvoice(
+                customerEmail,
+                paymentInfo.amount,
+                paymentDetails.paymentType,
+                paymentDetails.userId,
+                paymentDetails.bookingId,
+                paymentDetails.reservation,
+                paymentDetails.fromAdmin
+            );
 
             if (!invoiceResponse) {
                 throw new Error("Failed to create invoice in FreshBooks.");
             }
-            // Step 2: Record Payment in FreshBooks
+
             await recordPayment(customerEmail, paymentInfo.amount);
 
-        }
-        else if (paymentDetails.paymentType == "Final") {
+        } else if (paymentDetails.paymentType === "Final") {
             await recordPayment(customerEmail, paymentInfo.amount);
+
+            // Send Welcome Email
+
+            await sendWelcomeEmail(customerEmail);
         }
-
-
 
         res.status(200).json({
             success: true,
@@ -229,6 +235,51 @@ const completePayment = async (req, res) => {
     }
 };
 
+
+// Welcome Mail
+
+const sendWelcomeEmail = async (email) => {
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: 'development.aayaninfotech@gmail.com', 
+                pass: 'defe qhhm kgmu ztkf',
+            },
+        });
+
+        const mailOptions = {
+            from: 'development.aayaninfotech@gmail.com', 
+            to: email, 
+            subject: "Welcome to Southwalton Carts!", 
+            html: `
+                <h1>Welcome to Southwalton Carts, ${email}!</h1>
+                <p>We are excited to have you on board. Here are some instructions to help you use our carts:</p>
+                <ul>
+                    <li>Ensure the cart is fully charged before use.</li>
+                    <li>Check the brakes and controls for proper functioning.</li>
+                    <li>Drive safely and follow local traffic rules.</li>
+                </ul>
+                <p>For more details, please refer to the video tutorials below:</p>
+                <a href="https://example.com/tutorial1">Video Tutorial 1</a><br>
+                <a href="https://example.com/tutorial2">Video Tutorial 2</a><br>
+                <p>We’ve also attached a user guide to help you get started.</p>
+                <p>Happy carting!</p>
+                <p>Best regards,<br>Southwalton Carts Team</p>
+            `,
+            attachments: [
+                {
+                    filename: 'User_Guide.pdf'
+                },
+            ],
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log("Welcome email sent successfully!");
+    } catch (error) {
+        console.error("Error sending welcome email:", error.message);
+    }
+};
 
 
 
