@@ -136,8 +136,10 @@ const bookingHistoryByUserId = async (req, res, next) => {
     const { page = 1, limit = 10, search = "" } = req.query; // Pagination and search query parameters
 
     try {
-        // Find payments for the user
-        const payments = await Payment.find({ userId }).select('amount bookingId reservation');
+        // Find payments for the user and sort by createdAt in descending order
+        const payments = await Payment.find({ userId })
+            .select('amount bookingId reservation')
+            .sort({ createdAt: -1 }); // Sort by newest first
 
         const filteredPayments = await Promise.all(
             payments.map(async (payment) => {
@@ -192,14 +194,16 @@ const bookingHistoryByUserId = async (req, res, next) => {
                 total,
                 page: parseInt(page),
                 limit: parseInt(limit),
-                totalPages, // Add total pages to the response
+                totalPages,
                 data: paginatedPayments,
             })
         );
     } catch (error) {
+        console.error("Error fetching payment history:", error);
         return next(createError(500, "Error fetching payment history"));
     }
 };
+
 
 
 
