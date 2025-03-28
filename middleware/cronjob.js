@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 const { createInvoice } = require('../middleware/freshbooksService');
 
 // Cron job to run daily at midnight
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 0 * * *', async () => {
     console.log('Cron job started:', new Date());
     try {
         const today = new Date();
