@@ -181,6 +181,16 @@ const completePayment = async (req, res) => {
             return res.status(400).json({ error: "Customer email is missing in the payment session." });
         }
 
+        const customerName =
+            session.customer_name ||
+            session.payment_intent?.payment_method?.billing_details?.name ||
+            null;
+
+        if (!customerName) {
+            return res.status(400).json({ error: "Customer name is missing in the payment session." });
+        }
+
+
         const newPayment = new Payment({
             userId: paymentDetails.userId,
             bookingId: paymentDetails.bookingId,
@@ -195,6 +205,7 @@ const completePayment = async (req, res) => {
 
         if (paymentDetails.paymentType === "Reservation") {
             const invoiceResponse = await createInvoice(
+                customerName,
                 customerEmail,
                 paymentInfo.amount,
                 paymentDetails.paymentType,
@@ -243,15 +254,15 @@ const sendWelcomeEmail = async (email) => {
         const transporter = nodemailer.createTransport({
             service: 'Gmail',
             auth: {
-                user: 'development.aayaninfotech@gmail.com', 
+                user: 'development.aayaninfotech@gmail.com',
                 pass: 'defe qhhm kgmu ztkf',
             },
         });
 
         const mailOptions = {
-            from: 'development.aayaninfotech@gmail.com', 
-            to: email, 
-            subject: "Welcome to Southwalton Carts!", 
+            from: 'development.aayaninfotech@gmail.com',
+            to: email,
+            subject: "Welcome to Southwalton Carts!",
             html: `
                 <h1>Welcome to Southwalton Carts, ${email}!</h1>
                 <p>We are excited to have you on board. Here are some instructions to help you use our carts:</p>

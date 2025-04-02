@@ -78,9 +78,9 @@ const sendInvoiceByEmail = async (invoiceId, recipients, subject, body, includeP
     }
 };
 
-const createInvoice = async (email, amount, paymentType, userId, bookingId, reservation, fromAdmin) => {
+const createInvoice = async (customerName, email, amount, paymentType, userId, bookingId, reservation, fromAdmin) => {
     try {
-        console.log("In service:", email, amount, paymentType, userId, bookingId, reservation, fromAdmin);
+        console.log("In service:", customerName, email, amount, paymentType, userId, bookingId, reservation, fromAdmin);
 
         const numericAmount = parseFloat(amount);
         if (isNaN(numericAmount)) {
@@ -109,7 +109,6 @@ const createInvoice = async (email, amount, paymentType, userId, bookingId, rese
         const lines = [];
 
         if (paymentType === "Reservation") {
-          
             lines.push({
                 name: 'Reservation Price',
                 description: 'Flat reservation fee',
@@ -137,6 +136,10 @@ const createInvoice = async (email, amount, paymentType, userId, bookingId, rese
             customerid: clientId,
             create_date: new Date().toISOString().split('T')[0],
             lines,
+            customer: {
+                organization: customerName, // Setting full name in 'organization' field
+                email: email
+            }
         };
 
         const response = await axios.post(
@@ -150,9 +153,8 @@ const createInvoice = async (email, amount, paymentType, userId, bookingId, rese
 
         const recipients = [email];
         let subject = 'Your Reservation Invoice Details';
-        let body = `Thank you for your business. Attached is your invoice.`;
+        let body = `Thank you for your business, ${customerName}. Attached is your invoice.`;
 
-        // Declare paymentLink outside of the 'if' block
         let paymentLink = null;
 
         if (paymentType === "Final") {
@@ -161,7 +163,7 @@ const createInvoice = async (email, amount, paymentType, userId, bookingId, rese
             subject = 'Your Damage Deposit and Vehicle Invoice with Payment Link';
             body += ` You can make a payment here: ${paymentLink}`;
         }
-        console.log(paymentLink); // Now this will work without error
+        console.log(paymentLink);
 
         await sendInvoiceByEmail(invoiceId, recipients, subject, body, true);
 
@@ -171,6 +173,7 @@ const createInvoice = async (email, amount, paymentType, userId, bookingId, rese
         throw new Error(error.response?.data?.message || error.message);
     }
 };
+
 
 
 
