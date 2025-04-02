@@ -136,10 +136,10 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
             customerid: clientId,
             create_date: new Date().toISOString().split('T')[0],
             lines,
-            customer: {
-                organization: customerName, // Setting full name in 'organization' field
-                email: email
-            }
+            billing_address: {
+                first_name: customerName,  
+                email: email,  
+            },
         };
 
         const response = await axios.post(
@@ -184,7 +184,7 @@ const createClient = async (email) => {
     try {
         const headers = await getFreshBooksHeaders();
 
-        const clientData = { email };
+        const clientData = { email:email };
         const response = await axios.post(
             `https://api.freshbooks.com/accounting/account/${process.env.FRESHBOOKS_ACCOUNT_ID}/users/clients`,
             { client: clientData },
