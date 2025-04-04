@@ -94,18 +94,22 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
 
         const headers = await getFreshBooksHeaders();
 
-        const floridaTaxRate = 0.07; // 7%
-        const convenienceFeeRate = 0.05; // 5%
+        const floridaTaxRate = 0.07; // 7% tax
+        const convenienceFeeRate = 0.05; // 5% fee
         const damageDepositBase = 250;
 
         let lines = [];
+        let damageDeposit = 0;
+        let onlineConvenienceFee = 0;
+        let taxableAmount = 0;
 
         if (paymentType === "Reservation") {
             const reservationPrice = 100;
             const balanceAmount = numericAmount;
             const totalBeforeFees = reservationPrice + balanceAmount;
-            const onlineConvenienceFee = totalBeforeFees * convenienceFeeRate;
-            const floridaTax = totalBeforeFees * floridaTaxRate;
+            
+            onlineConvenienceFee = totalBeforeFees * convenienceFeeRate;
+            taxableAmount = totalBeforeFees + onlineConvenienceFee;
 
             lines.push(
                 {
@@ -113,31 +117,31 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
                     description: 'Flat reservation fee',
                     qty: 1,
                     unit_cost: { amount: reservationPrice, currency: 'USD' },
+                    taxName1: "Florida Tax",
+                    taxAmount1: floridaTaxRate * 100 // Assign 7% tax
                 },
                 {
                     name: 'Balance Amount',
                     description: 'Remaining balance for your reservation',
                     qty: 1,
                     unit_cost: { amount: balanceAmount, currency: 'USD' },
+                    taxName1: "Florida Tax",
+                    taxAmount1: floridaTaxRate * 100 // Assign 7% tax
                 },
                 {
                     name: 'Online Convenience Fee (5%)',
                     description: 'Processing fee',
                     qty: 1,
                     unit_cost: { amount: onlineConvenienceFee, currency: 'USD' },
-                },
-                {
-                    name: 'Florida Tax (7%)',
-                    description: 'State tax',
-                    qty: 1,
-                    unit_cost: { amount: floridaTax, currency: 'USD' },
+                    taxName1: "Florida Tax",
+                    taxAmount1: floridaTaxRate * 100 // Assign 7% tax
                 }
             );
 
         } else if (paymentType === "Final") {
-            const damageDeposit = damageDepositBase;
-            const onlineConvenienceFee = damageDeposit * convenienceFeeRate;
-            const floridaTax = damageDeposit * floridaTaxRate;
+            damageDeposit = damageDepositBase;
+            onlineConvenienceFee = damageDeposit * convenienceFeeRate;
+            taxableAmount = damageDeposit + onlineConvenienceFee;
 
             lines.push(
                 {
@@ -145,18 +149,16 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
                     description: 'Security deposit for the vehicle',
                     qty: 1,
                     unit_cost: { amount: damageDeposit, currency: 'USD' },
+                    taxName1: "Florida Tax",
+                    taxAmount1: floridaTaxRate * 100 // Assign 7% tax
                 },
                 {
                     name: 'Online Convenience Fee (5%)',
                     description: 'Processing fee',
                     qty: 1,
                     unit_cost: { amount: onlineConvenienceFee, currency: 'USD' },
-                },
-                {
-                    name: 'Florida Tax (7%)',
-                    description: 'State tax',
-                    qty: 1,
-                    unit_cost: { amount: floridaTax, currency: 'USD' },
+                    taxName1: "Florida Tax",
+                    taxAmount1: floridaTaxRate * 100 // Assign 7% tax
                 }
             );
         }
@@ -164,7 +166,7 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
         const invoiceData = {
             customerid: clientId,
             create_date: new Date().toISOString().split('T')[0],
-            lines,
+            lines
         };
 
         const response = await axios.post(
@@ -183,8 +185,8 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
         let paymentLink = null;
 
         if (paymentType === "Final") {
-            amount = damageDeposit + onlineConvenienceFee + floridaTax;
-            paymentLink = await createStripePaymentLink(amount, email, paymentType, userId, bookingId, reservation, fromAdmin);
+            const totalAmount = damageDeposit + onlineConvenienceFee + (taxableAmount * floridaTaxRate);
+            paymentLink = await createStripePaymentLink(totalAmount, email, paymentType, userId, bookingId, reservation, fromAdmin);
             subject = 'Your Damage Deposit and Vehicle Invoice with Payment Link';
             body += ` You can make a payment here: ${paymentLink}`;
         }
@@ -198,9 +200,6 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
         throw new Error(error.response?.data?.message || error.message);
     }
 };
-
-
-
 
 
 
