@@ -133,8 +133,6 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
                     description: 'Processing fee',
                     qty: 1,
                     unit_cost: { amount: onlineConvenienceFee, currency: 'USD' },
-                    taxName1: "Florida Tax",
-                    taxAmount1: floridaTaxRate * 100 // Assign 7% tax
                 }
             );
 
@@ -157,8 +155,6 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
                     description: 'Processing fee',
                     qty: 1,
                     unit_cost: { amount: onlineConvenienceFee, currency: 'USD' },
-                    taxName1: "Florida Tax",
-                    taxAmount1: floridaTaxRate * 100 // Assign 7% tax
                 }
             );
         }
