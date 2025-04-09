@@ -205,7 +205,7 @@ const createClient = async (email) => {
     try {
         const headers = await getFreshBooksHeaders();
 
-        const clientData = { email:email };
+        const clientData = { email:email,lname:"newName",fname:"lastName" };
         const response = await axios.post(
             `https://api.freshbooks.com/accounting/account/${process.env.FRESHBOOKS_ACCOUNT_ID}/users/clients`,
             { client: clientData },
