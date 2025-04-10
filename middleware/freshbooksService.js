@@ -87,7 +87,7 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
             throw new Error(`Invalid amount value: ${amount}`);
         }
 
-        const clientId = await getClientId(email);
+        const clientId = await getClientId(email,customerName);
         if (!clientId) {
             throw new Error('Client ID is required but missing.');
         }
@@ -224,11 +224,11 @@ const getClientDetails = async (clientId) => {
 };
 
 
-const createClient = async (email) => {
+const createClient = async (email,customerName) => {
     try {
         const headers = await getFreshBooksHeaders();
 
-        const clientData = { email:email,fname:"Utkarsh Gupta" };
+        const clientData = { email:email,fname: customerName };
         const response = await axios.post(
             `https://api.freshbooks.com/accounting/account/${process.env.FRESHBOOKS_ACCOUNT_ID}/users/clients`,
             { client: clientData },
@@ -244,7 +244,7 @@ const createClient = async (email) => {
 
 
 
-const getClientId = async (email) => {
+const getClientId = async (email,customerName) => {
     if (!email || typeof email !== "string") {
       throw new Error("Invalid email provided to getClientId.");
     }
@@ -269,7 +269,7 @@ const getClientId = async (email) => {
   
       // If not found, create a new client
       if (!client) {
-        const clientId = await createClient(email);
+        const clientId = await createClient(email,customerName);
         return clientId;
       }
   
@@ -299,7 +299,7 @@ const exchangeAuthorizationCodeForToken = async (code) => {
 
 //record payment for reservation payment
 
-const recordPayment = async (email, amount) => {
+const recordPayment = async (email, amount,customerName) => {
     try {
         if (!email || typeof email !== "string") {
             throw new Error("Invalid email provided to recordPayment.");
@@ -308,7 +308,7 @@ const recordPayment = async (email, amount) => {
             throw new Error("Invalid amount provided to recordPayment.");
         }
 
-        const clientId = await getClientId(email);
+        const clientId = await getClientId(email,customerName);
         if (!clientId) {
             throw new Error("Client ID is required but missing.");
         }

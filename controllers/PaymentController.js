@@ -190,6 +190,8 @@ const completePayment = async (req, res) => {
             return res.status(400).json({ error: "Customer name is missing in the payment session." });
         }
 
+        console.log("customerName",customerName)
+
 
         const newPayment = new Payment({
             userId: paymentDetails.userId,
@@ -219,10 +221,10 @@ const completePayment = async (req, res) => {
                 throw new Error("Failed to create invoice in FreshBooks.");
             }
 
-            await recordPayment(customerEmail, paymentInfo.amount);
+            await recordPayment(customerEmail, paymentInfo.amount,customerName);
 
         } else if (paymentDetails.paymentType === "Final") {
-            await recordPayment(customerEmail, paymentInfo.amount);
+            await recordPayment(customerEmail, paymentInfo.amount,customerName);
 
             // Send Welcome Email
 

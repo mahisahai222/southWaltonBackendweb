@@ -51,9 +51,11 @@ cron.schedule('0 0 * * *', async () => {
 
             const email = payment.paymentDetails.transactionDetails.payment_method.billing_details.email
             const customerName = payment.paymentDetails.transactionDetails.payment_method.billing_details.name
+            console.log("customerName",customerName)
+
             if (diffInDays <= 21) {
                 console.log(email,reservation.reserveAmount, 'Final')
-                await createInvoice(customerName,email, reservation.reserveAmount, 'Final', payment.userId, payment.bookingId, payment.reservation, payment.fromAdmin);
+                await createInvoice(customerName,email, "250", 'Final', payment.userId, payment.bookingId, payment.reservation, payment.fromAdmin);
                 payment.mailSent = true;
                 await payment.save();
             }
