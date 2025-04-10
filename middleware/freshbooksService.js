@@ -91,6 +91,15 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
         if (!clientId) {
             throw new Error('Client ID is required but missing.');
         }
+      
+        const clientDetails = await getClientDetails(clientId);
+        if (!clientDetails || !clientDetails.fname) {
+            throw new Error('Client details are incomplete.');
+        }
+        
+        // Combine first name and last name for the customerName
+        const fullName = `${clientDetails.username}`;
+
 
         const headers = await getFreshBooksHeaders();
 
@@ -162,7 +171,8 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
         const invoiceData = {
             customerid: clientId,
             create_date: new Date().toISOString().split('T')[0],
-            lines
+            lines,
+            customerName: fullName 
         };
 
         const response = await axios.post(
@@ -198,14 +208,27 @@ const createInvoice = async (customerName, email, amount, paymentType, userId, b
 };
 
 
-
+const getClientDetails = async (clientId) => {
+    try {
+        const headers = await getFreshBooksHeaders();
+        
+        const response = await axios.get(
+            `https://api.freshbooks.com/accounting/account/${process.env.FRESHBOOKS_ACCOUNT_ID}/users/clients/${clientId}`,
+            { headers }
+        );
+        return response.data.response.result.client || null;
+    } catch (error) {
+        console.error('Error fetching client details:', error.response?.data || error.message);
+        throw new Error('Unable to fetch client details.');
+    }
+};
 
 
 const createClient = async (email) => {
     try {
         const headers = await getFreshBooksHeaders();
 
-        const clientData = { email:email,lname:"newName",fname:"lastName" };
+        const clientData = { email:email,fname:"Utkarsh Gupta" };
         const response = await axios.post(
             `https://api.freshbooks.com/accounting/account/${process.env.FRESHBOOKS_ACCOUNT_ID}/users/clients`,
             { client: clientData },
