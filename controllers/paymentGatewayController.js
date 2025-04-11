@@ -21,7 +21,7 @@ const createCheckoutSession = async (req, res) => {
                 {
                     price_data: {
                         currency: "usd",
-                        product_data: { name: "Reservation Payment" },
+                        product_data: { name: "Payment for Vehicle Rental and Reservation Price" },
                         unit_amount: amountInDollars * 100,
                     },
                     quantity: 1,
