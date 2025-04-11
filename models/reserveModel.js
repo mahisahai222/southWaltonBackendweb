@@ -58,6 +58,11 @@ const reserveSchema = mongoose.Schema(
             type: String,
             require: false,
             default: null,
+        },
+        vehicleAmount:{
+            type: String,
+            require: false,
+            default: null,
         }
     },
     {
