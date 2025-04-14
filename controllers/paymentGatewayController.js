@@ -35,12 +35,24 @@ const createCheckoutSession = async (req, res) => {
                         product_data: {
                             name: "Payment for Vehicle Rental and Reservation Price",
                             description: `
-                                Reservation Price: $${reservationPrice.toFixed(2)}
-                                (Reservation Amount: $${reservationAmount.toFixed(2)}, Florida Tax: 7%, Online Convenience Fee: 5%)
-                                
-                                Vehicle Rental: $${vehicleRental.toFixed(2)}
-                                (Vehicle Price: $${vehiclePrice.toFixed(2)}, Florida Tax: 7%, Online Convenience Fee: 5%)
-                            `
+                            ==============================
+                                        Invoice
+                            ==============================
+                            
+                            Reservation Price: $${reservationPrice.toFixed(2)}
+                              - Reservation Amount: $${reservationAmount.toFixed(2)}
+                              - Florida Tax (7%): $${reservationTax.toFixed(2)}
+                              - Online Convenience Fee (5%): $${reservationFee.toFixed(2)}
+                            
+                            Vehicle Rental: $${vehicleRental.toFixed(2)}
+                              - Vehicle Price: $${vehiclePrice.toFixed(2)}
+                              - Florida Tax (7%): $${vehicleTax.toFixed(2)}
+                              - Online Convenience Fee (5%): $${vehicleFee.toFixed(2)}
+                            
+                            ==============================
+                            Total Amount: $${amountInDollars.toFixed(2)}
+                            ==============================
+                                                `,
                         },
                         unit_amount: amountInDollars * 100,
                     },
