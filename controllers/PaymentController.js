@@ -192,6 +192,12 @@ const completePayment = async (req, res) => {
 
         console.log("customerName",customerName)
 
+        const reservationDetails = await Reserve.findById(paymentDetails.reservation);
+        if (!reservationDetails) {
+            return res.status(404).json({ error: "Reservation details not found." });
+        }
+
+        console.log("Reservation Details:", reservationDetails);
 
         const newPayment = new Payment({
             userId: paymentDetails.userId,
@@ -209,7 +215,7 @@ const completePayment = async (req, res) => {
             const invoiceResponse = await createInvoice(
                 customerName,
                 customerEmail,
-                paymentInfo.amount,
+                reservationDetails.vehicleAmount,
                 paymentDetails.paymentType,
                 paymentDetails.userId,
                 paymentDetails.bookingId,
