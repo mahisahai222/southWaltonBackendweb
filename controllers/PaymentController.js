@@ -190,14 +190,14 @@ const completePayment = async (req, res) => {
             return res.status(400).json({ error: "Customer name is missing in the payment session." });
         }
 
-        console.log("customerName",customerName)
+        // console.log("customerName",customerName)
 
         const reservationDetails = await Reserve.findById(paymentDetails.reservation);
         if (!reservationDetails) {
             return res.status(404).json({ error: "Reservation details not found." });
         }
 
-        console.log("Reservation Details:", reservationDetails);
+        // console.log("Reservation Details:", reservationDetails);
 
         const newPayment = new Payment({
             userId: paymentDetails.userId,
@@ -294,7 +294,7 @@ const sendWelcomeEmail = async (email) => {
         };
 
         await transporter.sendMail(mailOptions);
-        console.log("Welcome email sent successfully!");
+        // console.log("Welcome email sent successfully!");
     } catch (error) {
         console.error("Error sending welcome email:", error.message);
     }
