@@ -15,13 +15,33 @@ const createCheckoutSession = async (req, res) => {
             return res.status(400).json({ error: "All fields (amountInDollars, reservation,fromAdmin,paymentType) are required" });
         }
 
+        // Amount Breakdown
+        const reservationAmount = 100;
+        const reservationTax = reservationAmount * 0.07; // Florida Tax (7%)
+        const reservationFee = reservationAmount * 0.05; // Online Convenience Fee (5%)
+        const reservationPrice = reservationAmount + reservationTax + reservationFee;
+
+        const vehicleRental = amountInDollars - reservationPrice;
+        const vehiclePrice = vehicleRental / 1.12; // Remove 12% (7% Tax + 5% Fee)
+        const vehicleTax = vehiclePrice * 0.07; // Florida Tax
+        const vehicleFee = vehiclePrice * 0.05; // Online Convenience Fee
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
             line_items: [
                 {
                     price_data: {
                         currency: "usd",
-                        product_data: { name: "Payment for Vehicle Rental and Reservation Price" },
+                        product_data: {
+                            name: "Payment for Vehicle Rental and Reservation Price",
+                            description: `
+                                Reservation Price: $${reservationPrice.toFixed(2)}
+                                (Reservation Amount: $${reservationAmount.toFixed(2)}, Florida Tax: 7%, Online Convenience Fee: 5%)
+                                
+                                Vehicle Rental: $${vehicleRental.toFixed(2)}
+                                (Vehicle Price: $${vehiclePrice.toFixed(2)}, Florida Tax: 7%, Online Convenience Fee: 5%)
+                            `
+                        },
                         unit_amount: amountInDollars * 100,
                     },
                     quantity: 1,
@@ -46,6 +66,7 @@ const createCheckoutSession = async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
+
 
 
 
