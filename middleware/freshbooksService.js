@@ -32,8 +32,8 @@ const createStripePaymentLink = async (amount, email, paymentType,userId, bookin
             ],
             mode: 'payment',
             customer_email: email, // Pre-fill email in Stripe checkout
-            success_url: `http://3.223.253.106:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `http://3.223.253.106:8133/cancel`,
+            success_url: `http://18.209.91.97:8133/payment-successfully?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `http://18.209.91.97:8133/cancel`,
             metadata: {
                 amount, email, paymentType,userId, bookingId,reservation,fromAdmin
             },
